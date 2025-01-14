@@ -87,8 +87,7 @@ export const postLogin = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const getProtected = (req: Request, res: Response): void => {
-  const token = req.cookies.authToken; // get token from cookie
-
+  const token = req.body.token;
   if (!token) {
     const { message, payload } = new CustomError(
       "No token, authorization denied",
@@ -99,8 +98,9 @@ export const getProtected = (req: Request, res: Response): void => {
 
   try {
     const authToken = jwt.verify(token, JWT_SECRET);
-
-    res.status(200).send({ message: "Access granted", authToken });
+    if (authToken) {
+        res.status(200).send({ success: 1});
+    }
   } catch (err) {
     console.error(err);
     const { message } = new CustomError("Invalid token");
