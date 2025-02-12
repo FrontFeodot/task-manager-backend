@@ -1,10 +1,11 @@
 import express from "express";
-import { getProtected, postLogin, postSignup } from "../controllers/auth";
+import { getProtected, postLogin } from "../controllers/loginController";
+import { postRegister } from "../controllers/registerController";
 
 const router = express.Router();
 
 router.post("/login", postLogin);
-router.post("/signup", postSignup);
+router.post("/signup", postRegister);
 router.post("/protected", getProtected);
 
 export default router;

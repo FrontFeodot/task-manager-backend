@@ -1,55 +1,14 @@
 import { Request, Response } from "express";
-import { nanoid } from "nanoid";
 import bcrypt from "bcryptjs";
 
 import User from "../models/user";
 import jwt from "jsonwebtoken";
-import CustomError from "../utils/error";
-import { generateToken } from "../utils/authHelper";
+import CustomError from "../common/utils/error";
+import { generateToken } from "../common/utils/authHelper";
 
 require("dotenv").config();
 
 const JWT_SECRET = process.env.JWT_SECRET || "";
-
-export const postSignup = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  const { email, password, confirmPassword } = req.body;
-
-  if (password !== confirmPassword) {
-    res.send("Password and confirm password are not matched");
-  }
-
-  try {
-    const userData = await User.findOne({ email });
-    if (userData) {
-      const { message } = new CustomError("User with this email already exist");
-      res.status(400).send({ message });
-      return;
-    }
-
-    return bcrypt.hash(password, 12).then(async (hashedPassword: string) => {
-      const userId = nanoid();
-      const user = new User({
-        userId,
-        email,
-        password: hashedPassword,
-      });
-      try {
-        await user.save();
-        res.send({ message: "success", token: generateToken(user.userId) });
-      } catch (err) {
-        const { message } = new CustomError("Something went wrong");
-        res.status(500).send({ message });
-        return console.log("saving error", err);
-      }
-    });
-  } catch (err) {
-    console.log(err);
-    res.status(500).send(new CustomError("Something went wrong"));
-  }
-};
 
 export const postLogin = async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
@@ -99,7 +58,7 @@ export const getProtected = (req: Request, res: Response): void => {
   try {
     const authToken = jwt.verify(token, JWT_SECRET);
     if (authToken) {
-        res.status(200).send({ success: 1});
+      res.status(200).send({ success: 1 });
     }
   } catch (err) {
     console.error(err);

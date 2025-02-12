@@ -4,7 +4,8 @@ import express, { Request, Response } from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import loginRoute from "./routes/login";
-import mongoConnect from "./utils/database";
+import boardRoute from "./routes/board";
+import mongoConnect from "./common/utils/database";
 import cookieParser from "cookie-parser";
 
 const app: express.Application = express();
@@ -18,10 +19,8 @@ app.use(cors());
 
 app.use("/auth", loginRoute);
 
-app.use("/", (req: Request, res: Response) => {
-  res.status(200);
-  res.send("cal");
-});
+app.use("/board", boardRoute);
+
 app.use((req, res) => {
   res.status(404), res.send("<h1>Page not found</h1>");
 });
