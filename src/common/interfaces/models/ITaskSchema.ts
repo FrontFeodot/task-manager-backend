@@ -9,7 +9,8 @@ export interface ITask extends Document {
   customFields?: Record<string, string>;
   type?: "task" | "story";
   parentTask?: Types.ObjectId;
-  column: Types.ObjectId;
+  column: string;
+  board: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }

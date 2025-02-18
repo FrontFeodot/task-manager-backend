@@ -19,7 +19,8 @@ const TaskSchema = new Schema<ITask>({
   customFields: { type: Map, of: String },
   type: { type: String, enum: ["task", "story"], default: "task" },
   parentTask: { type: Schema.Types.ObjectId, ref: "Task", default: null },
-  column: { type: Schema.Types.ObjectId, ref: "Column", required: true },
+  column: { type: String, /* ref: "Column", */ required: true },
+  board: { type: Schema.Types.ObjectId, ref: "Column", required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

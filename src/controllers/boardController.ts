@@ -3,8 +3,7 @@ import { Column } from "../models/board/column";
 import { Task } from "../models/board/task";
 import { Request, Response } from "express";
 import CustomError from "../common/utils/error";
-import { IColumnDefault } from "../common/interfaces/models/IColumnSchema";
-import { assign, reduce } from "lodash";
+import { assign, omit, pick, reduce } from "lodash";
 
 export const initDefaultBoard = async (userId: string) => {
   const defaultColumn = new Column({
@@ -19,27 +18,6 @@ export const initDefaultBoard = async (userId: string) => {
   }
 };
 
-export const createColumn = async (name: string, timeframe: string) => {
-  const column = new Column({ name, timeframe });
-  await column.save();
-  return column;
-};
-
-export const createTask = async (
-  name: string,
-  columnId: ObjectId,
-  options = {},
-) => {
-  const task = new Task({ name, column: columnId, ...options });
-  await task.save();
-  return task;
-};
-
-export const getTasksForColumn = async (columnId: ObjectId) => {
-  const tasks = await Task.find({ column: columnId }).populate("column").exec();
-  return tasks;
-};
-
 export const getBoard = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.body;
@@ -51,21 +29,17 @@ export const getBoard = async (req: Request, res: Response): Promise<void> => {
     const columnIds = columns.map((col) => col._id);
 
     const tasks = await Task.find({
-      column: { $in: columnIds },
+      board: { $in: columnIds },
       userId: userId,
-    })
-      .populate("parentTask", "name")
-      .lean();
+    }).lean();
 
     const board = reduce(
       columns,
       (result, column) => {
         return assign(result, {
           [column.name]: {
-            ...column,
-            tasks: tasks.filter(
-              (task) => String(task.column) === String(column._id),
-            ),
+            ...omit(column, ["_v"]),
+            tasks,
           },
         });
       },
@@ -75,6 +49,6 @@ export const getBoard = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json(board);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error fetching board" });
+    res.status(500).json(new CustomError("Error fetching board"));
   }
 };

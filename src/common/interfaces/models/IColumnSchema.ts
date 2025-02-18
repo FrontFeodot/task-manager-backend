@@ -4,5 +4,3 @@ export interface IColumn extends Document {
   userId: string;
   createdAt: Date;
 }
-
-export type IColumnDefault = "day" | "week" | "month" | "quarter" | "year";
