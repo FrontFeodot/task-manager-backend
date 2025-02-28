@@ -2,7 +2,8 @@ import mongoose, { Schema, Types } from "mongoose";
 
 import { ITask } from "../../common/interfaces/models/ITaskSchema";
 
-const TaskSchema = new Schema<ITask>({
+export const TaskSchema = new Schema<ITask>({
+  taskId: { type: Number, required: true, default: 0 },
   name: { type: String, required: true },
   userId: { type: String, ref: "User", required: true },
   status: {
@@ -18,9 +19,9 @@ const TaskSchema = new Schema<ITask>({
   description: { type: String, default: "" },
   customFields: { type: Map, of: String },
   type: { type: String, enum: ["task", "story"], default: "task" },
-  parentTask: { type: Schema.Types.ObjectId, ref: "Task", default: null },
-  column: { type: String, /* ref: "Column", */ required: true },
-  board: { type: Schema.Types.ObjectId, ref: "Column", required: true },
+  parentTask: { type: Number, ref: "Task", default: null },
+  column: { type: String, /* ref: "Board", */ required: true },
+  board: { type: Schema.Types.ObjectId, ref: "Board", required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

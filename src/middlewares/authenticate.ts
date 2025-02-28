@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import CustomError from "../common/utils/error";
+import CustomResponse from "../common/utils/error";
 
 export const authenticate = (
   req: Request,
@@ -9,7 +9,9 @@ export const authenticate = (
 ): void => {
   const token = req.headers.authorization;
   if (!token) {
-    res.status(401).json({ error: "Unauthorized" });
+    res
+      .status(401)
+      .send(new CustomResponse({ isError: 1, message: "Unauthorized" }));
     return;
   }
 
@@ -18,11 +20,11 @@ export const authenticate = (
       userId: string;
     };
     if (!userId) {
-      throw new CustomError("Invalid token");
+      throw new CustomResponse({ isError: 1, message: "Invalid token" });
     }
     req.body.userId = userId;
     next();
   } catch (error) {
-    res.status(401).json({ error });
+    res.status(401).send({ error });
   }
 };

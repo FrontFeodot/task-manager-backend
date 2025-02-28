@@ -1,20 +1,40 @@
 import { ObjectId } from "mongoose";
-import { Column } from "../models/board/column";
+import { Board } from "../models/board/board";
 import { Task } from "../models/board/task";
 import { Request, Response } from "express";
-import CustomError from "../common/utils/error";
-import { assign, omit, pick, reduce } from "lodash";
+import CustomResponse from "../common/utils/error";
+import { assign, isError, map, omit, pick, reduce } from "lodash";
 
 export const initDefaultBoard = async (userId: string) => {
-  const defaultColumn = new Column({
+  const defaultBoard = new Board({
     name: "Weekly planer",
-    items: ["day", "week", "month", "quarter", "year"],
+    columns: ["day", "week", "month", "quarter", "year"],
     userId,
   });
   try {
-    await defaultColumn.save();
+    await defaultBoard.save();
   } catch (err) {
     console.log(err);
+  }
+};
+
+export const createBoard = async (req: Request, res: Response) => {
+  try {
+    const { data } = req.body;
+    const board = new Board(data);
+    await board.save();
+    res
+      .status(200)
+      .send(new CustomResponse({ isSuccess: 1, message: "success" }));
+  } catch (err) {
+    res
+      .status(500)
+      .json(
+        new CustomResponse({
+          isError: 1,
+          message: "An error occurred while creating a board",
+        }),
+      );
   }
 };
 
@@ -22,33 +42,50 @@ export const getBoard = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.body;
     if (!userId) {
-      const { message } = new CustomError("userId is missing");
-      res.status(401).send({ message });
+      res
+        .status(401)
+        .send(new CustomResponse({ isError: 1, message: "userId is missing" }));
     }
-    const columns = await Column.find({ userId }).lean();
-    const columnIds = columns.map((col) => col._id);
+    const boards = await Board.find({ userId }).lean();
+    const boardIds = boards.map((col) => col._id);
 
     const tasks = await Task.find({
-      board: { $in: columnIds },
+      board: { $in: boardIds },
       userId: userId,
     }).lean();
 
+    const filteredTasks = map(tasks, (task) =>
+      omit(task, ["userId", "_id", "__v"]),
+    );
+
     const board = reduce(
-      columns,
+      boards,
       (result, column) => {
         return assign(result, {
           [column.name]: {
-            ...omit(column, ["_v"]),
-            tasks,
+            ...omit(column, ["userId", "_id", "__v"]),
+            tasks: filteredTasks,
           },
         });
       },
       {},
     );
 
-    res.status(200).json(board);
+    res
+      .status(200)
+      .send(
+        new CustomResponse({
+          isSuccess: 1,
+          message: "Success",
+          payload: board,
+        }),
+      );
   } catch (err) {
     console.error(err);
-    res.status(500).json(new CustomError("Error fetching board"));
+    res
+      .status(500)
+      .send(
+        new CustomResponse({ isError: 1, message: "Error fetching board" }),
+      );
   }
 };
