@@ -25,14 +25,12 @@ export const postRegister = async (
   try {
     const userData = await User.findOne({ email });
     if (userData) {
-      res
-        .status(400)
-        .send(
-          new CustomResponse({
-            isError: 1,
-            message: "User with this email already exist",
-          }),
-        );
+      res.status(400).send(
+        new CustomResponse({
+          isError: 1,
+          message: "User with this email already exist",
+        }),
+      );
       return;
     }
 

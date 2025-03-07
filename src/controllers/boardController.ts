@@ -27,14 +27,12 @@ export const createBoard = async (req: Request, res: Response) => {
       .status(200)
       .send(new CustomResponse({ isSuccess: 1, message: "success" }));
   } catch (err) {
-    res
-      .status(500)
-      .json(
-        new CustomResponse({
-          isError: 1,
-          message: "An error occurred while creating a board",
-        }),
-      );
+    res.status(500).json(
+      new CustomResponse({
+        isError: 1,
+        message: "An error occurred while creating a board",
+      }),
+    );
   }
 };
 
@@ -47,10 +45,10 @@ export const getBoard = async (req: Request, res: Response): Promise<void> => {
         .send(new CustomResponse({ isError: 1, message: "userId is missing" }));
     }
     const boards = await Board.find({ userId }).lean();
-    const boardIds = boards.map((col) => col._id);
+    const boardsNamesList = boards.map((board) => board.name);
 
     const tasks = await Task.find({
-      board: { $in: boardIds },
+      board: boardsNamesList,
       userId: userId,
     }).lean();
 
@@ -60,10 +58,10 @@ export const getBoard = async (req: Request, res: Response): Promise<void> => {
 
     const board = reduce(
       boards,
-      (result, column) => {
+      (result, boardItem) => {
         return assign(result, {
-          [column.name]: {
-            ...omit(column, ["userId", "_id", "__v"]),
+          [boardItem.name]: {
+            ...omit(boardItem, ["userId", "_id", "__v"]),
             tasks: filteredTasks,
           },
         });
@@ -71,15 +69,13 @@ export const getBoard = async (req: Request, res: Response): Promise<void> => {
       {},
     );
 
-    res
-      .status(200)
-      .send(
-        new CustomResponse({
-          isSuccess: 1,
-          message: "Success",
-          payload: board,
-        }),
-      );
+    res.status(200).send(
+      new CustomResponse({
+        isSuccess: 1,
+        message: "Success",
+        payload: board,
+      }),
+    );
   } catch (err) {
     console.error(err);
     res

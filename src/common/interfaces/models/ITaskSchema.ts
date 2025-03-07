@@ -2,16 +2,16 @@ import { Document, Types } from "mongoose";
 
 export interface ITask extends Document {
   taskId: number;
-  name: string;
+  title: string;
   userId: string;
-  status?: "to-do" | "in-progress" | "done";
+  status?: "to do" | "in progress" | "done";
   priority?: "low" | "medium" | "high";
   description?: string;
   customFields?: Record<string, string>;
   type?: "task" | "story";
   parentTask?: number;
   column: string;
-  board: Types.ObjectId;
+  board: string;
   createdAt: Date;
   updatedAt: Date;
 }

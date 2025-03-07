@@ -4,11 +4,11 @@ import { ITask } from "../../common/interfaces/models/ITaskSchema";
 
 export const TaskSchema = new Schema<ITask>({
   taskId: { type: Number, required: true, default: 0 },
-  name: { type: String, required: true },
-  userId: { type: String, ref: "User", required: true },
+  title: { type: String, required: true },
+  userId: { type: String, /* ref: "User", */ required: true },
   status: {
     type: String,
-    enum: ["to-do", "in-progress", "done"],
+    enum: ["to do", "in progress", "done"],
     default: "to-do",
   },
   priority: {
@@ -21,7 +21,7 @@ export const TaskSchema = new Schema<ITask>({
   type: { type: String, enum: ["task", "story"], default: "task" },
   parentTask: { type: Number, ref: "Task", default: null },
   column: { type: String, /* ref: "Board", */ required: true },
-  board: { type: Schema.Types.ObjectId, ref: "Board", required: true },
+  board: { type: String /* , ref: "Board" */, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

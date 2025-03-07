@@ -3,7 +3,7 @@ import { Task } from "../models/board/task";
 import CustomResponse from "../common/utils/error";
 import { ObjectId } from "mongoose";
 import { Board } from "../models/board/board";
-import { get } from "lodash";
+import { assign } from "lodash";
 
 export const createTask = async (req: Request, res: Response) => {
   try {
@@ -13,11 +13,9 @@ export const createTask = async (req: Request, res: Response) => {
       .exec();
 
     const newTaskId = lastTask ? lastTask.taskId + 1 : 1;
-    const board = await Board.findOne({ name: req.body.board }).lean();
     const task = new Task({
       ...req.body,
       taskId: newTaskId,
-      board: board?._id,
     });
 
     await task.save();
@@ -28,15 +26,38 @@ export const createTask = async (req: Request, res: Response) => {
       );
   } catch (err) {
     console.log("createTask error", err);
+    res.status(500).send(
+      new CustomResponse({
+        isError: 1,
+        message: "An error occurred while creating a task",
+        payload: err,
+      }),
+    );
+  }
+};
+
+export const updateTask = async (req: Request, res: Response) => {
+  try {
+    const response = await Task.findOneAndUpdate(
+      { userId: req.body.userId, taskId: req.body.taskId },
+      req.body,
+    );
+    if (response instanceof Error) {
+      throw response;
+    }
     res
-      .status(500)
+      .status(200)
       .send(
         new CustomResponse({
-          isError: 1,
-          message: "An error occurred while creating a task",
-          payload: err,
+          isSuccess: 1,
+          message: "Task updated successfuly",
         }),
       );
+  } catch (err) {
+    console.error("Task update error", err);
+    res
+      .status(500)
+      .send(new CustomResponse({ isError: 1, message: "Task update error" }));
   }
 };
 

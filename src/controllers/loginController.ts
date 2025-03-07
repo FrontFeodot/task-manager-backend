@@ -36,26 +36,22 @@ export const postLogin = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    res
-      .status(200)
-      .send(
-        new CustomResponse({
-          isSuccess: 1,
-          message: "Login successful",
-          payload: { token: generateToken(user.userId) },
-        }),
-      );
+    res.status(200).send(
+      new CustomResponse({
+        isSuccess: 1,
+        message: "Login successful",
+        payload: { token: generateToken(user.userId) },
+      }),
+    );
   } catch (err) {
     console.error(err);
-    res
-      .status(500)
-      .send(
-        new CustomResponse({
-          isError: 1,
-          message: "Error during login",
-          payload: err,
-        }),
-      );
+    res.status(500).send(
+      new CustomResponse({
+        isError: 1,
+        message: "Error during login",
+        payload: err,
+      }),
+    );
   }
 };
 
