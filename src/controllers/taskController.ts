@@ -25,7 +25,7 @@ export const createTask = async (req: Request, res: Response) => {
         new CustomResponse({ isSuccess: 1, message: "Created successfuly" }),
       );
   } catch (err) {
-    console.log("createTask error", err);
+    console.error("createTask error", err);
     res.status(500).send(
       new CustomResponse({
         isError: 1,
@@ -40,7 +40,10 @@ export const updateTask = async (req: Request, res: Response) => {
   try {
     const response = await Task.findOneAndUpdate(
       { userId: req.body.userId, taskId: req.body.taskId },
-      req.body,
+      {
+        ...req.body,
+        updatedAt: Date.now()
+      },
     );
     if (response instanceof Error) {
       throw response;
@@ -62,6 +65,6 @@ export const updateTask = async (req: Request, res: Response) => {
 };
 
 export const getTasksForColumn = async (columnId: ObjectId) => {
-  const tasks = await Task.find({ column: columnId }).populate("column").exec();
+  const tasks = await Task.find({ columnId: columnId }).populate("column").exec();
   return tasks;
 };

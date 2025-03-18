@@ -20,10 +20,11 @@ export const TaskSchema = new Schema<ITask>({
   customFields: { type: Map, of: String },
   type: { type: String, enum: ["task", "story"], default: "task" },
   parentTask: { type: Number, ref: "Task", default: null },
-  column: { type: String, /* ref: "Board", */ required: true },
-  board: { type: String /* , ref: "Board" */, required: true },
+  columnId: { type: String, /* ref: "Board", */ required: true },
+  boardId: { type: String /* , ref: "Board" */, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
+  order: {type: Number, required: true},
 });
 
 export const Task = mongoose.model<ITask>("Task", TaskSchema);

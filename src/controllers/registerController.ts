@@ -57,11 +57,11 @@ export const postRegister = async (
           .send(
             new CustomResponse({ isError: 1, message: "Something went wrong" }),
           );
-        return console.log("saving error", err);
+        return console.error("saving error", err);
       }
     });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res
       .status(500)
       .send(

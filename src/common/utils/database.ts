@@ -15,7 +15,7 @@ const mongoConnect = (callback: () => void) => {
         console.log("mongo connect error", err);
       });
   }
-  console.log("connect not succeed");
+  console.error("connect not succeed");
 };
 
 export default mongoConnect;
