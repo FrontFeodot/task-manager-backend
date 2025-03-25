@@ -33,14 +33,23 @@ export const initDefaultBoard = async (userId: string) => {
 
 export const createBoard = async (req: Request, res: Response) => {
   try {
-    const { data } = req.body;
+    const { title, userId } = req.body;
+    if (!title) {
+      throw new CustomResponse({isError: 1, message: 'Missing title'})
+    }
     const boardId = nanoid()
-    const board = new Board({...data, boardId});
+    const board = new Board({title, boardId, userId, columns: []});
     await board.save();
     res
       .status(200)
-      .send(new CustomResponse({ isSuccess: 1, message: "success" }));
+      .send(new CustomResponse({ isSuccess: 1, message: "Board created successfully" }));
   } catch (err) {
+    console.error(err);
+    if (err instanceof CustomResponse) {
+      res
+      .status(500)
+      .send(err);
+  }
     res.status(500).json(
       new CustomResponse({
         isError: 1,
@@ -49,6 +58,67 @@ export const createBoard = async (req: Request, res: Response) => {
     );
   }
 };
+
+export const updateBoardTitle = async (req: Request, res: Response) => {
+  try {
+    const { title, userId, boardId } = req.body;
+    if (!title || !boardId) {
+      throw new CustomResponse({isError: 1, message: 'Missing data'})
+    }
+    const updatedBoard = await Board.findOneAndUpdate({userId, boardId}, {title})
+    if (!updatedBoard) {
+      throw new CustomResponse({isError: 1, message: 'An error while updating the board'})
+    }
+    res
+      .status(200)
+      .send(new CustomResponse({ isSuccess: 1, message: "Board updated successfully" }));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof CustomResponse) {
+      res
+      .status(500)
+      .send(err);
+  }
+    res.status(500).json(
+      new CustomResponse({
+        isError: 1,
+        message: "An error occurred while updating a board",
+      }),
+    );
+  }
+};
+
+export const deleteBoard = async (req: Request, res: Response) => {
+  try {
+    const { userId, boardId } = req.body;
+    if (!boardId) {
+      throw new CustomResponse({isError: 1, message: 'Missing board id'})
+    }
+    const deletedBoard = await Board.findOneAndDelete({userId, boardId})
+
+    const deletedTasks = await Task.deleteMany({userId, boardId})
+
+    if (!deletedBoard || !deletedTasks) {
+      throw new CustomResponse({isError: 1, message: 'An error while updating the board'})
+    }
+    res
+      .status(200)
+      .send(new CustomResponse({ isSuccess: 1, message: "Board deleted successfully" }));
+  } catch (err) {
+    console.error(err);
+    if (err instanceof CustomResponse) {
+      res
+      .status(500)
+      .send(err);
+  }
+    res.status(500).json(
+      new CustomResponse({
+        isError: 1,
+        message: "An error occurred while deleting a board",
+      }),
+    );
+  }
+} 
 
 export const getBoardList = async (req: Request, res: Response): Promise<void> => {
   try {
