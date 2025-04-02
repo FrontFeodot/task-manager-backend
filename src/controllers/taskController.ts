@@ -37,26 +37,24 @@ export const createTask = async (req: Request, res: Response) => {
 };
 
 export const updateTask = async (req: Request, res: Response) => {
-  const {userId, boardId, taskId} = req.body
+  const { userId, boardId, taskId } = req.body;
   try {
     const response = await Task.findOneAndUpdate(
       { userId, taskId, boardId },
       {
         ...req.body,
-        updatedAt: Date.now()
+        updatedAt: Date.now(),
       },
     );
     if (response instanceof Error) {
       throw response;
     }
-    res
-      .status(200)
-      .send(
-        new CustomResponse({
-          isSuccess: 1,
-          message: "Task updated successfuly",
-        }),
-      );
+    res.status(200).send(
+      new CustomResponse({
+        isSuccess: 1,
+        message: "Task updated successfuly",
+      }),
+    );
   } catch (err) {
     console.error("Task update error", err);
     res
@@ -66,22 +64,33 @@ export const updateTask = async (req: Request, res: Response) => {
 };
 
 export const getTasksForColumn = async (columnId: ObjectId) => {
-  const tasks = await Task.find({ columnId: columnId }).populate("column").exec();
+  const tasks = await Task.find({ columnId: columnId })
+    .populate("column")
+    .exec();
   return tasks;
 };
 
 export const deleteTask = async (req: Request, res: Response) => {
-  const {userId, boardId, taskId} = req.body
+  const { userId, boardId, taskId } = req.body;
   try {
-    const response = await Task.findOneAndDelete({userId, taskId, boardId})
+    const response = await Task.findOneAndDelete({ userId, taskId, boardId });
     if (!response || response instanceof Error) {
       throw response;
     }
 
-    res.status(200).send(new CustomResponse({isSuccess: 1, message: 'Task delete successful'}))
+    res
+      .status(200)
+      .send(
+        new CustomResponse({ isSuccess: 1, message: "Task delete successful" }),
+      );
+  } catch (err) {
+    console.error("Task delete error: ", err);
+    res.status(500).send(
+      new CustomResponse({
+        isError: 1,
+        message: "Task delete err",
+        payload: err,
+      }),
+    );
   }
-  catch(err) {
-    console.error('Task delete error: ', err)
-    res.status(500).send(new CustomResponse({isError: 1, message: 'Task delete err', payload: err}))
-  }
-}
+};

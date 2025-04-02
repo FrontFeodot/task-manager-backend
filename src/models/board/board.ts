@@ -11,7 +11,7 @@ const ColumnSchema = new Schema<IColumn>({
 
 const BoardSchema = new Schema<IBoard>({
   title: { type: String, required: true },
-  boardId: {type: String, required: true},
+  boardId: { type: String, required: true },
   columns: { type: [ColumnSchema], required: true },
   userId: { type: String, ref: "User", required: true },
   createdAt: { type: Date, default: Date.now },

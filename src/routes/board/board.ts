@@ -1,5 +1,11 @@
 import express from "express";
-import { deleteBoard, getBoardList, updateBoardTitle, updateColumnOrder, updateTaskOrder } from "../../controllers/boardController";
+import {
+  deleteBoard,
+  getBoardList,
+  updateBoardTitle,
+  updateColumnOrder,
+  updateTaskOrder,
+} from "../../controllers/boardController";
 import { authenticate } from "../../middlewares/authenticate";
 import { createBoard } from "../../controllers/boardController";
 

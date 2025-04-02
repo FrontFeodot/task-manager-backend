@@ -1,4 +1,4 @@
-import { ObjectId } from "mongoose";
+import { FlattenMaps, ObjectId } from "mongoose";
 import { Board } from "../models/board/board";
 import { Task } from "../models/board/task";
 import { Request, Response } from "express";
@@ -7,17 +7,18 @@ import { assign, isError, map, omit, pick, reduce } from "lodash";
 import { nanoid } from "nanoid";
 import { ITask } from "../common/interfaces/models/ITaskSchema";
 import { IBoard, IColumn } from "../common/interfaces/models/IBoardSchema";
+import { getTaskForBoard } from "../common/utils/boardHelper";
 
 export const initDefaultBoard = async (userId: string) => {
-  const boardId = nanoid()
-  const initColumnTitles = ["day", "week", "month", "quarter", "year"]
+  const boardId = nanoid();
+  const initColumnTitles = ["day", "week", "month", "quarter", "year"];
   const columns = map(initColumnTitles, (columnTitle, index) => {
     return {
       title: columnTitle,
       order: index + 1,
       columnId: nanoid(),
-    }
-  })
+    };
+  });
   const defaultBoard = new Board({
     title: "Weekly planer",
     boardId,
@@ -35,21 +36,22 @@ export const createBoard = async (req: Request, res: Response) => {
   try {
     const { title, userId } = req.body;
     if (!title) {
-      throw new CustomResponse({isError: 1, message: 'Missing title'})
+      throw new CustomResponse({ isError: 1, message: "Missing title" });
     }
-    const boardId = nanoid()
-    const board = new Board({title, boardId, userId, columns: []});
+    const boardId = nanoid();
+    const board = new Board({ title, boardId, userId, columns: [] });
     await board.save();
-    res
-      .status(200)
-      .send(new CustomResponse({ isSuccess: 1, message: "Board created successfully" }));
+    res.status(200).send(
+      new CustomResponse({
+        isSuccess: 1,
+        message: "Board created successfully",
+      }),
+    );
   } catch (err) {
     console.error(err);
     if (err instanceof CustomResponse) {
-      res
-      .status(500)
-      .send(err);
-  }
+      res.status(500).send(err);
+    }
     res.status(500).json(
       new CustomResponse({
         isError: 1,
@@ -63,22 +65,29 @@ export const updateBoardTitle = async (req: Request, res: Response) => {
   try {
     const { title, userId, boardId } = req.body;
     if (!title || !boardId) {
-      throw new CustomResponse({isError: 1, message: 'Missing data'})
+      throw new CustomResponse({ isError: 1, message: "Missing data" });
     }
-    const updatedBoard = await Board.findOneAndUpdate({userId, boardId}, {title})
+    const updatedBoard = await Board.findOneAndUpdate(
+      { userId, boardId },
+      { title },
+    );
     if (!updatedBoard) {
-      throw new CustomResponse({isError: 1, message: 'An error while updating the board'})
+      throw new CustomResponse({
+        isError: 1,
+        message: "An error while updating the board",
+      });
     }
-    res
-      .status(200)
-      .send(new CustomResponse({ isSuccess: 1, message: "Board updated successfully" }));
+    res.status(200).send(
+      new CustomResponse({
+        isSuccess: 1,
+        message: "Board updated successfully",
+      }),
+    );
   } catch (err) {
     console.error(err);
     if (err instanceof CustomResponse) {
-      res
-      .status(500)
-      .send(err);
-  }
+      res.status(500).send(err);
+    }
     res.status(500).json(
       new CustomResponse({
         isError: 1,
@@ -92,25 +101,29 @@ export const deleteBoard = async (req: Request, res: Response) => {
   try {
     const { userId, boardId } = req.body;
     if (!boardId) {
-      throw new CustomResponse({isError: 1, message: 'Missing board id'})
+      throw new CustomResponse({ isError: 1, message: "Missing board id" });
     }
-    const deletedBoard = await Board.findOneAndDelete({userId, boardId})
+    const deletedBoard = await Board.findOneAndDelete({ userId, boardId });
 
-    const deletedTasks = await Task.deleteMany({userId, boardId})
+    const deletedTasks = await Task.deleteMany({ userId, boardId });
 
     if (!deletedBoard || !deletedTasks) {
-      throw new CustomResponse({isError: 1, message: 'An error while updating the board'})
+      throw new CustomResponse({
+        isError: 1,
+        message: "An error while updating the board",
+      });
     }
-    res
-      .status(200)
-      .send(new CustomResponse({ isSuccess: 1, message: "Board deleted successfully" }));
+    res.status(200).send(
+      new CustomResponse({
+        isSuccess: 1,
+        message: "Board deleted successfully",
+      }),
+    );
   } catch (err) {
     console.error(err);
     if (err instanceof CustomResponse) {
-      res
-      .status(500)
-      .send(err);
-  }
+      res.status(500).send(err);
+    }
     res.status(500).json(
       new CustomResponse({
         isError: 1,
@@ -118,9 +131,12 @@ export const deleteBoard = async (req: Request, res: Response) => {
       }),
     );
   }
-} 
+};
 
-export const getBoardList = async (req: Request, res: Response): Promise<void> => {
+export const getBoardList = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { userId } = req.body;
     if (!userId) {
@@ -136,17 +152,13 @@ export const getBoardList = async (req: Request, res: Response): Promise<void> =
       userId: userId,
     }).lean();
 
-    const filteredTasks = map(tasks, (task) =>
-      omit(task, ["userId", "_id", "__v"]),
-    );
-
     const board = reduce(
       boards,
       (result, boardItem) => {
         return assign(result, {
           [boardItem.title]: {
             ...omit(boardItem, ["userId", "_id", "__v"]),
-            tasks: filteredTasks,
+            tasks: getTaskForBoard(tasks, boardItem.boardId),
           },
         });
       },
@@ -171,54 +183,65 @@ export const getBoardList = async (req: Request, res: Response): Promise<void> =
 };
 
 export const updateTaskOrder = async (req: Request, res: Response) => {
-  const tasksToUpdate = req.body as {taskId: number, order: number, columnId: string}[]
+  const tasksToUpdate = req.body.tasksToUpdate as {
+    taskId: number;
+    order: number;
+    columnId: string;
+    boardId: string;
+  }[];
+
   if (!tasksToUpdate) {
-    res.status(500).send(new CustomResponse({isError: 1, message: 'missing data'}))
+    res
+      .status(500)
+      .send(new CustomResponse({ isError: 1, message: "missing data" }));
   }
-  const updates = tasksToUpdate.map(item => ({
+  const updates = tasksToUpdate.map((item) => ({
     updateOne: {
-      filter: { taskId: item.taskId },
-      update: { $set: {order: item.order, columnId: item.columnId} },
-    }
+      filter: { taskId: item.taskId, boardId: item.boardId },
+      update: { $set: { order: item.order, columnId: item.columnId } },
+    },
   }));
 
   try {
-    const response = await Task.bulkWrite(updates)
+    const response = await Task.bulkWrite(updates);
 
-      if (!response || response instanceof Error) {
-        throw new CustomResponse({isError: 1, message: 'Saving error'})
-      }
-      await getBoardList(req, res)
-
+    if (!response || response instanceof Error) {
+      throw new CustomResponse({ isError: 1, message: "Saving error" });
+    }
+    await getBoardList(req, res);
   } catch (err) {
-    console.error('updateTaskOrder', err)
+    console.error("updateTaskOrder", err);
   }
-  
-}
+};
 
 export const updateColumnOrder = async (req: Request, res: Response) => {
-  const {columns, boardId} = req.body as {boardId: string, columns: IColumn[] }
+  const { columns, boardId } = req.body as {
+    boardId: string;
+    columns: IColumn[];
+  };
   if (!columns || !boardId) {
-    res.status(500).send(new CustomResponse({isError: 1, message: 'missing data'}))
+    res
+      .status(500)
+      .send(new CustomResponse({ isError: 1, message: "missing data" }));
   }
-    try {
-      const response = await Board.findOneAndUpdate(
-        { boardId: boardId },
-        {
-          columns
-        },
-      );
+  try {
+    const response = await Board.findOneAndUpdate(
+      { boardId: boardId },
+      {
+        columns,
+      },
+    );
 
-      if (!response) {
-        throw response;
-      }
-      await getBoardList(req, res)
-
-    } catch (err) {
-      console.error("Columns update error", err);
-      res
-        .status(500)
-        .send(new CustomResponse({ isError: 1, message: "Columns update error" }));
+    if (!response) {
+      throw response;
     }
-  
-}
+    await getBoardList(req, res);
+  } catch (err) {
+    console.error("Columns update error", err);
+    res
+      .status(500)
+      .send(
+        new CustomResponse({ isError: 1, message: "Columns update error" }),
+      );
+  }
+};

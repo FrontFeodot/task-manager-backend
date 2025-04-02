@@ -12,7 +12,7 @@ export interface IBoard extends Document {
 }
 
 export interface IColumn {
-  title: string,
-  columnId: string,
-  order: number,
+  title: string;
+  columnId: string;
+  order: number;
 }

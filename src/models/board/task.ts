@@ -24,7 +24,7 @@ export const TaskSchema = new Schema<ITask>({
   boardId: { type: String /* , ref: "Board" */, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
-  order: {type: Number, required: true},
+  order: { type: Number, required: true },
 });
 
 export const Task = mongoose.model<ITask>("Task", TaskSchema);

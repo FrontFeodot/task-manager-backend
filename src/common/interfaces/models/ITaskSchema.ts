@@ -14,5 +14,5 @@ export interface ITask extends Document {
   boardId: string;
   createdAt: Date;
   updatedAt: Date;
-  order: number,
+  order: number;
 }
