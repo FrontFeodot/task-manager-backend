@@ -6,7 +6,6 @@ import cors from "cors";
 import loginRoute from "./routes/login";
 import boardRoute from "./routes/board/board";
 import mongoConnect from "./common/utils/database";
-import cookieParser from "cookie-parser";
 import taskRouter from "./routes/board/task";
 import columnRouter from "./routes/board/column";
 
@@ -19,21 +18,19 @@ const app: express.Application = express();
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
   optionsSuccessStatus: 200
 } */
 
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
-app.use(bodyParser.urlencoded({ extended: false }));
-
 app.options('*', cors());
 
-app.use( cors({
+app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
+  methods: '*',
+  allowedHeaders: '*'
 }));
+
+app.use(express.static(path.join(__dirname, "public")));
+app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(express.json());
 
