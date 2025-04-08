@@ -35,9 +35,11 @@ export const createColumn = async (
           message: "Column already exist, please choose another name",
         }),
       );
+      return;
     }
     const newColumn = { title, order, columnId: nanoid() };
     boardResponse.set("columns", [...columns, newColumn]);
+
     boardResponse.save();
     res.status(200).send(
       new CustomResponse({
@@ -49,6 +51,7 @@ export const createColumn = async (
     console.error(err);
     if (err instanceof CustomResponse) {
       res.status(500).send(err);
+      return;
     }
     res.status(500).send(
       new CustomResponse({
@@ -88,6 +91,7 @@ export const updateColumn = async (req: Request, res: Response) => {
     console.error("Column update error", err);
     if (err instanceof CustomResponse) {
       res.status(500).send(err);
+      return;
     }
     res
       .status(500)
@@ -167,6 +171,7 @@ export const deleteColumn = async (
   } catch (err) {
     if (err instanceof CustomResponse) {
       res.status(500).send(err);
+      return;
     }
     res.status(500).send(
       new CustomResponse({

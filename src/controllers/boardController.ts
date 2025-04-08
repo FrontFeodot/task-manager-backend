@@ -51,6 +51,7 @@ export const createBoard = async (req: Request, res: Response) => {
     console.error(err);
     if (err instanceof CustomResponse) {
       res.status(500).send(err);
+      return;
     }
     res.status(500).json(
       new CustomResponse({
@@ -87,6 +88,7 @@ export const updateBoardTitle = async (req: Request, res: Response) => {
     console.error(err);
     if (err instanceof CustomResponse) {
       res.status(500).send(err);
+      return;
     }
     res.status(500).json(
       new CustomResponse({
@@ -123,6 +125,7 @@ export const deleteBoard = async (req: Request, res: Response) => {
     console.error(err);
     if (err instanceof CustomResponse) {
       res.status(500).send(err);
+      return;
     }
     res.status(500).json(
       new CustomResponse({

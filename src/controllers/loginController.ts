@@ -64,6 +64,7 @@ export const getProtected = (req: Request, res: Response): void => {
         message: "No token, authorization denied",
       }),
     );
+    return;
   }
 
   try {
