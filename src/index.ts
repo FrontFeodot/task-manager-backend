@@ -12,17 +12,23 @@ import columnRouter from "./routes/board/column";
 
 const app: express.Application = express();
 
+/* const corsOptions = {
+  origin: [
+    'https://frontfeodot-task-manager.netlify.app',
+    'http://localhost:3000'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
+} */
+
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(express.json());
-app.use(cors({
-  origin: [
-    'https://frontfeodot-task-manager.netlify.app',
-    'http://localhost:3000'
-  ]
-}));
+app.use(cors(/* corsOptions */));
 
 app.use("/auth", loginRoute);
 
