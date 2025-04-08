@@ -1,6 +1,6 @@
 import path from "path";
 
-import express, { Request, Response } from "express";
+import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import loginRoute from "./routes/login";
@@ -17,7 +17,12 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://frontfeodot-task-manager.netlify.app',
+    'http://localhost:3000'
+  ]
+}));
 
 app.use("/auth", loginRoute);
 
@@ -31,6 +36,6 @@ app.use((req, res) => {
 });
 
 mongoConnect(() => {
-  app.listen(4000);
+  app.listen(process.env.PORT || 4000);
   console.log("appStarted");
 });

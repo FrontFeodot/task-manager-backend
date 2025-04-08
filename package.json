@@ -4,6 +4,8 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon",
+    "build": "tsc",
+    "production": "node dist/index.js",
     "prettier": "prettier --write ."
   },
   "author": "Bohdan Lopatnychenko",
