@@ -23,10 +23,16 @@ const app: express.Application = express();
 
 app.options('*', cors());
 
+const allowedOrigins = [
+  'https://frontfeodot-task-manager.netlify.app',
+  'http://localhost:3000'
+];
+
 app.use(cors({
-  origin: '*',
-  methods: '*',
-  allowedHeaders: '*'
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
 
 app.use(express.static(path.join(__dirname, "public")));
