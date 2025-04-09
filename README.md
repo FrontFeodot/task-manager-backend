@@ -36,3 +36,5 @@ npm install
 npm start
 
 Project require .env file with JWT token, MongodDB uri and server port
+
+The application is available at this link: https://frontfeodot-task-manager.netlify.app
