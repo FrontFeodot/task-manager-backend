@@ -274,23 +274,20 @@ export const updateDoneColumn = async (req: Request, res: Response) => {
       const tasksToUpdate = await Task.find({
         boardId,
         columnId: doneColumn,
+        isDone: false,
       }).lean();
-      const hasTaskToUpdate = some(tasksToUpdate, (item) => !item.isDone);
 
-      if (hasTaskToUpdate) {
-        const updates = map(tasksToUpdate, (item) => {
-          return {
-            updateOne: {
-              filter: { boardId, columnId: doneColumn },
-              update: { $set: { isDone: true } },
-            },
-          };
-        });
+      const updates = map(tasksToUpdate, (item) => ({
+        updateOne: {
+          filter: { _id: item._id },
+          update: { $set: { isDone: true } },
+        },
+      }));
 
-        const tasksResponse = await Task.bulkWrite(updates);
-        if (!tasksResponse) {
-          throw tasksResponse;
-        }
+      const tasksResponse = await Task.bulkWrite(updates);
+
+      if (!tasksResponse) {
+        throw tasksResponse;
       }
     }
 
