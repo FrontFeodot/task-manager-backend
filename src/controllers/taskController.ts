@@ -43,6 +43,11 @@ export const updateTask = async (req: Request, res: Response) => {
       { userId, taskId, boardId },
       {
         ...req.body,
+        ...(req.body.type === "story" && req.body.parentTask
+          ? {
+              parentTask: null,
+            }
+          : {}),
         updatedAt: Date.now(),
       },
     );

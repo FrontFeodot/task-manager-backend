@@ -5,6 +5,7 @@ export interface IBoard extends Document {
   title: string;
   boardId: string;
   columns: IColumn[];
+  doneColumn: string | null;
   tasks: ITask[];
   userId: string;
   createdAt: Date;

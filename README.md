@@ -12,7 +12,6 @@ User Authentication: Implements robust authentication to manage user sessions.
 
 Performance & Scalability: Designed for efficient data handling and prepared to support future integrations.
 
-
 ### Tech Stack
 
 Express

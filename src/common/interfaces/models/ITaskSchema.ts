@@ -4,6 +4,7 @@ export interface ITask extends Document {
   taskId: number;
   title: string;
   userId: string;
+  isDone: boolean;
   status?: "to do" | "in progress" | "done";
   priority?: "low" | "medium" | "high";
   description?: string;

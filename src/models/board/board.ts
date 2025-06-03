@@ -15,6 +15,7 @@ const BoardSchema = new Schema<IBoard>({
   columns: { type: [ColumnSchema], required: true },
   userId: { type: String, ref: "User", required: true },
   createdAt: { type: Date, default: Date.now },
+  doneColumn: { type: String, default: null },
 });
 
 export const Board = mongoose.model<IBoard>("Board", BoardSchema);

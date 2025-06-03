@@ -3,7 +3,7 @@ import { Board } from "../models/board/board";
 import { Task } from "../models/board/task";
 import { Request, Response } from "express";
 import CustomResponse from "../common/utils/error";
-import { assign, isError, map, omit, pick, reduce } from "lodash";
+import { assign, isError, map, omit, pick, reduce, some } from "lodash";
 import { nanoid } from "nanoid";
 import { ITask } from "../common/interfaces/models/ITaskSchema";
 import { IBoard, IColumn } from "../common/interfaces/models/IBoardSchema";
@@ -191,6 +191,7 @@ export const updateTaskOrder = async (req: Request, res: Response) => {
     order: number;
     columnId: string;
     boardId: string;
+    isDone: string | null;
   }[];
 
   if (!tasksToUpdate) {
@@ -201,7 +202,13 @@ export const updateTaskOrder = async (req: Request, res: Response) => {
   const updates = tasksToUpdate.map((item) => ({
     updateOne: {
       filter: { taskId: item.taskId, boardId: item.boardId },
-      update: { $set: { order: item.order, columnId: item.columnId } },
+      update: {
+        $set: {
+          order: item.order,
+          columnId: item.columnId,
+          isDone: item.isDone,
+        },
+      },
     },
   }));
 
@@ -241,6 +248,58 @@ export const updateColumnOrder = async (req: Request, res: Response) => {
     await getBoardList(req, res);
   } catch (err) {
     console.error("Columns update error", err);
+    res
+      .status(500)
+      .send(
+        new CustomResponse({ isError: 1, message: "Columns update error" }),
+      );
+  }
+};
+
+export const updateDoneColumn = async (req: Request, res: Response) => {
+  const { doneColumn, boardId } = req.body;
+  if (doneColumn === undefined || !boardId) {
+    res
+      .status(500)
+      .send(new CustomResponse({ isError: 1, message: "missing data" }));
+  }
+
+  try {
+    const boardResponse = await Board.findOneAndUpdate(
+      { boardId },
+      { doneColumn },
+    );
+
+    if (doneColumn) {
+      const tasksToUpdate = await Task.find({
+        boardId,
+        columnId: doneColumn,
+      }).lean();
+      const hasTaskToUpdate = some(tasksToUpdate, (item) => !item.isDone);
+
+      if (hasTaskToUpdate) {
+        const updates = map(tasksToUpdate, (item) => {
+          return {
+            updateOne: {
+              filter: { boardId, columnId: doneColumn },
+              update: { $set: { isDone: true } },
+            },
+          };
+        });
+
+        const tasksResponse = await Task.bulkWrite(updates);
+        if (!tasksResponse) {
+          throw tasksResponse;
+        }
+      }
+    }
+
+    if (!boardResponse) {
+      throw boardResponse;
+    }
+    await getBoardList(req, res);
+  } catch (err) {
+    console.error("Done column update error", err);
     res
       .status(500)
       .send(
