@@ -7,11 +7,6 @@ export const TaskSchema = new Schema<ITask>({
   title: { type: String, required: true },
   userId: { type: String, /* ref: "User", */ required: true },
   isDone: { type: Boolean, required: true, default: false },
-  status: {
-    type: String,
-    enum: ["to do", "in progress", "done"],
-    default: "to-do",
-  },
   priority: {
     type: String,
     enum: ["low", "medium", "high"],

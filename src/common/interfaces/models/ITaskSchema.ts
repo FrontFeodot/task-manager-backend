@@ -5,7 +5,6 @@ export interface ITask extends Document {
   title: string;
   userId: string;
   isDone: boolean;
-  status?: "to do" | "in progress" | "done";
   priority?: "low" | "medium" | "high";
   description?: string;
   customFields?: Record<string, string>;
