@@ -11,7 +11,7 @@ export const createColumn = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { title, boardId, order, userId } = req.body;
+  const { title, boardId, order } = req.body;
 
   if (!title || !boardId) {
     res
@@ -20,7 +20,7 @@ export const createColumn = async (
   }
 
   try {
-    const boardResponse = await getBoardHelper(userId);
+    const boardResponse = await getBoardHelper(boardId);
 
     if (boardResponse instanceof CustomResponse) {
       throw boardResponse;

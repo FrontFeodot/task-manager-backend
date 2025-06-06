@@ -123,6 +123,7 @@ export const createBoard = async (req: Request, res: Response) => {
       new CustomResponse({
         isSuccess: 1,
         message: 'Board created successfully',
+        payload: boardId
       })
     );
   } catch (err) {
