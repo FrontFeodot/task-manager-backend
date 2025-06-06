@@ -1,15 +1,15 @@
-import express from "express";
-import { authenticate } from "../../middlewares/authenticate";
+import express from 'express';
+import { authenticate } from '../../middlewares/authenticate';
 import {
   createTask,
   deleteTask,
   updateTask,
-} from "../../controllers/taskController";
+} from '../../controllers/board/taskController';
 
 const router = express.Router();
 
-router.post("/create", authenticate, createTask);
-router.put("/update", authenticate, updateTask);
-router.put("/delete", authenticate, deleteTask);
+router.post('/create', authenticate, createTask);
+router.put('/update', authenticate, updateTask);
+router.put('/delete', authenticate, deleteTask);
 
 export default router;

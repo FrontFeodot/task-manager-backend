@@ -1,5 +1,5 @@
-import { Types } from "mongoose";
-import { ITask } from "./ITaskSchema";
+import { Types } from 'mongoose';
+import { ITask } from './ITaskSchema';
 
 export interface IBoard extends Document {
   title: string;
@@ -8,6 +8,8 @@ export interface IBoard extends Document {
   doneColumn: string | null;
   tasks: ITask[];
   userId: string;
+  ownerEmail: string;
+  access: string[];
   createdAt: Date;
   _id: Types.ObjectId;
 }

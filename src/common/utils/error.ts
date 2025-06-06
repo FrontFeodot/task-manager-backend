@@ -1,4 +1,4 @@
-import { ICustomResponsePayload } from "../interfaces/ICustomError";
+import { ICustomResponsePayload } from '../interfaces/ICustomError';
 
 class CustomResponse {
   isSuccess: number;
@@ -9,7 +9,7 @@ class CustomResponse {
   constructor({
     isSuccess,
     isError,
-    message = "Something went wrong",
+    message = 'Something went wrong',
     payload,
   }: ICustomResponsePayload) {
     if (isSuccess) {

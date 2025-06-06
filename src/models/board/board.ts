@@ -1,7 +1,7 @@
-import mongoose, { Schema } from "mongoose";
-import { IBoard, IColumn } from "../../common/interfaces/models/IBoardSchema";
-import { ITask } from "../../common/interfaces/models/ITaskSchema";
-import { TaskSchema } from "./task";
+import mongoose, { Schema } from 'mongoose';
+import { IBoard, IColumn } from '../../common/interfaces/models/IBoardSchema';
+import { ITask } from '../../common/interfaces/models/ITaskSchema';
+import { TaskSchema } from './task';
 
 const ColumnSchema = new Schema<IColumn>({
   title: { type: String, required: true },
@@ -13,9 +13,11 @@ const BoardSchema = new Schema<IBoard>({
   title: { type: String, required: true },
   boardId: { type: String, required: true },
   columns: { type: [ColumnSchema], required: true },
-  userId: { type: String, ref: "User", required: true },
+  userId: { type: String, ref: 'User', required: true },
+  ownerEmail: { type: String },
+  access: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   doneColumn: { type: String, default: null },
 });
 
-export const Board = mongoose.model<IBoard>("Board", BoardSchema);
+export const Board = mongoose.model<IBoard>('Board', BoardSchema);

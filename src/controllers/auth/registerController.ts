@@ -1,15 +1,15 @@
-import { Request, Response } from "express";
-import { nanoid } from "nanoid";
-import bcrypt from "bcryptjs";
+import { Request, Response } from 'express';
+import { nanoid } from 'nanoid';
+import bcrypt from 'bcryptjs';
 
-import User from "../models/user";
-import CustomResponse from "../common/utils/error";
-import { generateToken } from "../common/utils/authHelper";
-import { initDefaultBoard } from "./boardController";
+import CustomResponse from '../../common/utils/error';
+import { generateToken } from '../../common/utils/authHelper';
+import { initDefaultBoard } from '../board/boardController';
+import { User } from '../../models/user';
 
 export const postRegister = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   const { email, password, confirmPassword } = req.body;
 
@@ -17,8 +17,8 @@ export const postRegister = async (
     res.send(
       new CustomResponse({
         isError: 1,
-        message: "Password and confirm password are not matched",
-      }),
+        message: 'Password and confirm password are not matched',
+      })
     );
   }
 
@@ -28,8 +28,8 @@ export const postRegister = async (
       res.status(400).send(
         new CustomResponse({
           isError: 1,
-          message: "User with this email already exist",
-        }),
+          message: 'User with this email already exist',
+        })
       );
       return;
     }
@@ -43,21 +43,21 @@ export const postRegister = async (
       });
       try {
         await user.save();
-        await initDefaultBoard(userId);
+        await initDefaultBoard(userId, email);
         res.send(
           new CustomResponse({
             isSuccess: 1,
-            message: "success",
-            payload: { token: generateToken(user.userId) },
-          }),
+            message: 'success',
+            payload: { token: generateToken(user.userId), email },
+          })
         );
       } catch (err) {
         res
           .status(500)
           .send(
-            new CustomResponse({ isError: 1, message: "Something went wrong" }),
+            new CustomResponse({ isError: 1, message: 'Something went wrong' })
           );
-        return console.error("saving error", err);
+        return console.error('saving error', err);
       }
     });
   } catch (err) {
@@ -65,7 +65,7 @@ export const postRegister = async (
     res
       .status(500)
       .send(
-        new CustomResponse({ isError: 1, message: "Something went wrong" }),
+        new CustomResponse({ isError: 1, message: 'Something went wrong' })
       );
   }
 };
