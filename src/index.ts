@@ -1,6 +1,6 @@
 import path from 'path';
 
-import express from 'express';
+import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import loginRoute from './routes/login';
@@ -8,6 +8,7 @@ import boardRoute from './routes/board/board';
 import mongoConnect from './common/utils/database';
 import taskRouter from './routes/board/task';
 import columnRouter from './routes/board/column';
+import CustomResponse from './common/utils/error';
 
 const app: express.Application = express();
 
@@ -32,10 +33,21 @@ app.use(
   })
 );
 
+const pingPong = (_: Request, res: Response) => {
+  res.status(200).send(
+    new CustomResponse({
+      isSuccess: 1,
+      message: 'pong',
+    })
+  );
+};
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(express.json());
+
+app.get('/ping', pingPong);
 
 app.use('/auth', loginRoute);
 

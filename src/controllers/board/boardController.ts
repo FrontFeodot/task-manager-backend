@@ -123,7 +123,7 @@ export const createBoard = async (req: Request, res: Response) => {
       new CustomResponse({
         isSuccess: 1,
         message: 'Board created successfully',
-        payload: boardId
+        payload: boardId,
       })
     );
   } catch (err) {
@@ -373,13 +373,11 @@ export const shareBoard = async (req: Request, res: Response) => {
     );
   } catch (err) {
     console.error(err);
-    res
-      .status(500)
-      .send(
-        new CustomResponse({
-          isError: 1,
-          message: `Sharing board error: ${err as string}`,
-        })
-      );
+    res.status(500).send(
+      new CustomResponse({
+        isError: 1,
+        message: `Sharing board error: ${err as string}`,
+      })
+    );
   }
 };
