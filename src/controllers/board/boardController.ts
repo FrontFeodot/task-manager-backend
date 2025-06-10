@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import CustomResponse from '../../common/utils/error';
 import {
   assign,
+  filter,
   includes,
   isError,
   map,
@@ -60,7 +61,7 @@ export const getBoardList = async (
     }
 
     const boards = await Board.find({
-      $or: [{ userId }, { access: user.email }],
+      $or: [{ userId }, { members: user.email }],
     }).lean();
 
     const boardsIds = boards.map((board) => board.boardId);
@@ -336,6 +337,7 @@ export const updateDoneColumn = async (req: Request, res: Response) => {
 };
 
 export const shareBoard = async (req: Request, res: Response) => {
+  console.log('shareBoard');
   try {
     const { userId, boardId, invitedUserEmail } = req.body;
 
@@ -357,11 +359,110 @@ export const shareBoard = async (req: Request, res: Response) => {
       throw 'Invited user not found';
     }
 
-    if (includes(board.access, invitedUserEmail)) {
+    if (includes(board.members, invitedUserEmail)) {
       throw 'User already has access to this board';
     }
 
-    board.access.push(invitedUserEmail);
+    board.members.push(invitedUserEmail);
+
+    board.save();
+
+    res.status(200).send(
+      new CustomResponse({
+        isSuccess: 1,
+        message: 'Board shared successfuly',
+      })
+    );
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(
+      new CustomResponse({
+        isError: 1,
+        message: `Sharing board error: ${err as string}`,
+      })
+    );
+  }
+};
+
+export const leaveBoard = async (req: Request, res: Response) => {
+  try {
+    const { userId, boardId } = req.body;
+
+    if (!boardId) {
+      throw 'Missing data';
+    }
+    const board = await Board.findOne({ boardId }).exec();
+
+    if (!board) {
+      throw 'Board not exist';
+    }
+
+    if (board.userId === userId) {
+      throw "You can't leave your own board";
+    }
+    const currentUser = await User.findOne({ userId }).exec();
+
+    if (!currentUser) {
+      throw 'User not found';
+    }
+
+    const updatedMembers = filter(
+      board.members,
+      (member) => member !== currentUser.email
+    );
+
+    board.members = updatedMembers;
+
+    board.save();
+
+    res.status(200).send(
+      new CustomResponse({
+        isSuccess: 1,
+        message: 'Board leaved successfuly',
+      })
+    );
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(
+      new CustomResponse({
+        isError: 1,
+        message: `Leaving board error: ${err as string}`,
+      })
+    );
+  }
+};
+export const kickMember = async (req: Request, res: Response) => {
+  try {
+    const { userId, boardId, memberEmail } = req.body;
+
+    if (!boardId || !memberEmail) {
+      throw 'Missing data';
+    }
+    const board = await Board.findOne({ boardId }).exec();
+
+    if (!board) {
+      throw 'Board not exist';
+    }
+
+    if (board.userId !== userId) {
+      throw 'Permission denied';
+    }
+    const kickedMember = await User.findOne({ email: memberEmail }).exec();
+
+    if (!kickedMember) {
+      throw 'Kicked member not found';
+    }
+
+    if (!includes(board.members, memberEmail)) {
+      throw 'Member email is not exist on this board';
+    }
+
+    const updatedMembers = filter(
+      board.members,
+      (member) => member !== kickedMember.email
+    );
+
+    board.members = updatedMembers;
 
     board.save();
 

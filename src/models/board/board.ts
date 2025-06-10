@@ -15,7 +15,7 @@ const BoardSchema = new Schema<IBoard>({
   columns: { type: [ColumnSchema], required: true },
   userId: { type: String, ref: 'User', required: true },
   ownerEmail: { type: String },
-  access: { type: [String], default: [] },
+  members: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   doneColumn: { type: String, default: null },
 });

@@ -9,7 +9,7 @@ export interface IBoard extends Document {
   tasks: ITask[];
   userId: string;
   ownerEmail: string;
-  access: string[];
+  members: string[];
   createdAt: Date;
   _id: Types.ObjectId;
 }

@@ -7,6 +7,8 @@ import {
   updateColumnOrder,
   updateTaskOrder,
   shareBoard,
+  leaveBoard,
+  kickMember,
 } from '../../controllers/board/boardController';
 import { authenticate } from '../../middlewares/authenticate';
 import { createBoard } from '../../controllers/board/boardController';
@@ -20,6 +22,8 @@ router.put('/update/title', authenticate, updateBoardTitle);
 router.put('/update/tasks', authenticate, updateTaskOrder);
 router.put('/update/columns', authenticate, updateColumnOrder);
 router.put('/update/done-column', authenticate, updateDoneColumn);
-router.post('/share', authenticate, shareBoard);
+router.post('/member/share', authenticate, shareBoard);
+router.post('/member/leave', authenticate, leaveBoard);
+router.post('/member/kick', authenticate, kickMember);
 
 export default router;
