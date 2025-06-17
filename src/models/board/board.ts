@@ -18,6 +18,7 @@ const BoardSchema = new Schema<IBoard>({
   members: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
   doneColumn: { type: String, default: null },
+  tasks: {type: [TaskSchema], default: []},
 });
 
 export const Board = mongoose.model<IBoard>('Board', BoardSchema);

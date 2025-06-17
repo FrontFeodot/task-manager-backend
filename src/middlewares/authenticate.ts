@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import CustomResponse from '../common/utils/error';
+import { verifyJwt } from '../common/utils/authHelper';
 
 export const authenticate = (
   req: Request,
@@ -16,12 +17,7 @@ export const authenticate = (
   }
 
   try {
-    const { userId } = jwt.verify(token, process.env.JWT_SECRET!) as {
-      userId: string;
-    };
-    if (!userId) {
-      throw new CustomResponse({ isError: 1, message: 'Invalid token' });
-    }
+    const userId = verifyJwt(token)
     req.body.userId = userId;
     next();
   } catch (error) {

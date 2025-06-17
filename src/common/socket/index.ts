@@ -1,0 +1,44 @@
+import { Server as HttpServer } from 'http';
+import { Server as IOServer, Socket } from 'socket.io';
+import { verifyJwt } from '../utils/authHelper';
+import boardSocketHandlers from './handlers/boardHandlers';
+
+let io: IOServer;
+
+export const initSocket = (server: HttpServer) => {
+  io = new IOServer(server, {
+    cors: { origin: '*' },
+    pingInterval: 10000,
+    pingTimeout: 5000,
+    connectionStateRecovery: {}
+  });
+
+  io.on('connection', (socket: Socket) => {
+    console.log('New WS connection:', socket.id);
+    boardSocketHandlers(socket, io)
+
+    socket.on('disconnect', () => {
+      console.log('WS disconnected:', socket.id);
+    });
+  });
+
+  io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  try {
+    const payload = verifyJwt(token);
+    socket.data.userId = payload;
+    next();
+  } catch (err) {
+    next(new Error('Unauthorized'));
+  }
+});
+
+  return io;
+}
+
+export function getIO(): IOServer {
+  if (!io) {
+    throw new Error('Socket.IO not initialized!');
+  }
+  return io;
+}

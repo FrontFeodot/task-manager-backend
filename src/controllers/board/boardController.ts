@@ -19,6 +19,7 @@ import { ITask } from '../../common/interfaces/models/ITaskSchema';
 import { IBoard, IColumn } from '../../common/interfaces/models/IBoardSchema';
 import { getTaskForBoard } from '../../common/utils/boardHelper';
 import { User } from '../../models/user';
+import { IManageMembers } from '../../common/interfaces/controllers/IBoardControllers';
 
 export const initDefaultBoard = async (userId: string, ownerEmail: string) => {
   const boardId = nanoid();
@@ -124,7 +125,7 @@ export const createBoard = async (req: Request, res: Response) => {
       new CustomResponse({
         isSuccess: 1,
         message: 'Board created successfully',
-        payload: boardId,
+        payload: board,
       })
     );
   } catch (err) {
@@ -142,15 +143,17 @@ export const createBoard = async (req: Request, res: Response) => {
   }
 };
 
-export const updateBoardTitle = async (req: Request, res: Response) => {
+export const updateBoardData = async (
+  boardData: Partial<IBoard>
+): Promise<CustomResponse> => {
   try {
-    const { title, userId, boardId } = req.body;
-    if (!title || !boardId) {
+    const { boardId } = boardData;
+    if (!boardId) {
       throw new CustomResponse({ isError: 1, message: 'Missing data' });
     }
     const updatedBoard = await Board.findOneAndUpdate(
-      { userId, boardId },
-      { title }
+      { boardId },
+      { ...boardData }
     );
     if (!updatedBoard) {
       throw new CustomResponse({
@@ -158,24 +161,20 @@ export const updateBoardTitle = async (req: Request, res: Response) => {
         message: 'An error while updating the board',
       });
     }
-    res.status(200).send(
-      new CustomResponse({
-        isSuccess: 1,
-        message: 'Board updated successfully',
-      })
-    );
+    return new CustomResponse({
+      isSuccess: 1,
+      message: 'Board updated successfully',
+      payload: boardData,
+    });
   } catch (err) {
     console.error(err);
     if (err instanceof CustomResponse) {
-      res.status(500).send(err);
-      return;
+      return err;
     }
-    res.status(500).json(
-      new CustomResponse({
-        isError: 1,
-        message: 'An error occurred while updating a board',
-      })
-    );
+    return new CustomResponse({
+      isError: 1,
+      message: 'An error occurred while updating a board',
+    });
   }
 };
 
@@ -333,6 +332,79 @@ export const updateDoneColumn = async (req: Request, res: Response) => {
       .send(
         new CustomResponse({ isError: 1, message: 'Columns update error' })
       );
+  }
+};
+
+export const manageMembers = async (
+  membersData: IManageMembers,
+  userId: string
+) => {
+  const { type, boardId, memberEmail } = membersData;
+
+  try {
+    if (!boardId || !memberEmail || !type) {
+      throw 'Missing data';
+    }
+    const board = await Board.findOne({ boardId }).exec();
+
+    if (!board) {
+      throw 'Board not exist';
+    }
+
+    const user = await User.findOne({ email: memberEmail }).exec();
+
+    if (!user) {
+      throw 'User not found';
+    }
+
+    if ((type === 'share' || type === 'kick') && board.userId !== userId) {
+      throw 'Permission denied';
+    }
+
+    if (type === 'leave' && board.userId === userId) {
+      throw "You can't leave your own board";
+    }
+
+    if (type === 'share' && includes(board.members, memberEmail)) {
+      throw 'User already has access to this board';
+    }
+
+    if (type === 'kick' && !includes(board.members, memberEmail)) {
+      throw 'Member email is not exist on this board';
+    }
+
+    if (type === 'share') {
+      board.members.push(memberEmail);
+    }
+
+    if (type === 'leave' || type === 'kick') {
+      const updatedMembers = filter(
+        board.members,
+        (member) => member !== memberEmail
+      );
+      board.members = updatedMembers;
+    }
+
+    await board.save();
+    return new CustomResponse({
+      isSuccess: 1,
+      message: 'success',
+      payload: { boardId, members: board.members },
+    });
+  } catch (err) {
+    console.error(err);
+
+    if (typeof err === 'string') {
+      return new CustomResponse({
+        isError: 1,
+        message: `Sharing board error: ${err as string}`,
+      });
+    }
+    return new CustomResponse({
+      isError: 1,
+      message: 'Manage members error',
+      payload: err,
+    });
   }
 };
 

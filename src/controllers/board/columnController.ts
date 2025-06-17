@@ -1,65 +1,89 @@
 import { Request, Response } from 'express';
 import CustomResponse from '../../common/utils/error';
 import { Board } from '../../models/board/board';
-import { find, findIndex, forEach, indexOf, map, some, sortBy } from 'lodash';
+import {
+  filter,
+  findIndex,
+  map,
+  some,
+  sortBy,
+} from 'lodash';
 import { nanoid } from 'nanoid';
-import { IBoard } from '../../common/interfaces/models/IBoardSchema';
 import { getBoardHelper } from '../../common/utils/boardHelper';
 import { Task } from '../../models/board/task';
+import { IManageColumn } from '../../common/interfaces/controllers/IColumnControllers';
 
-export const createColumn = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const { title, boardId, order } = req.body;
-
-  if (!title || !boardId) {
-    res
-      .status(500)
-      .send(new CustomResponse({ isError: 1, message: 'Missing title' }));
-  }
-
+export const manageColumn = async ({
+  title,
+  boardId,
+  order,
+  columnId,
+  isDelete,
+}: IManageColumn): Promise<CustomResponse> => {
   try {
-    const boardResponse = await getBoardHelper(boardId);
-
-    if (boardResponse instanceof CustomResponse) {
-      throw boardResponse;
+    if (!boardId || (!isDelete && !title)) {
+      throw new CustomResponse({ isError: 1, message: 'Missing data' });
     }
 
-    const { columns } = boardResponse;
-    const isAlreadyExist = some(columns, (column) => column.title === title);
-    if (isAlreadyExist) {
-      res.status(409).send(
-        new CustomResponse({
+    const board = await getBoardHelper(boardId);
+
+    if (board instanceof CustomResponse) {
+      throw board;
+    }
+
+    const { columns } = board;
+    const isColumnCreate = !columnId;
+
+    if (isDelete) {
+      if (!columnId) {
+        throw new CustomResponse({
+          isError: 1,
+          message: 'Missing columnId',
+        });
+      }
+
+      const updatedColumns = filter(
+        columns,
+        (column) => column.columnId !== columnId
+      );
+      board.columns = updatedColumns;
+    }
+    else if (isColumnCreate) {
+      const isAlreadyExist = some(columns, (column) => column.title === title);
+      if (isAlreadyExist) {
+        throw new CustomResponse({
           isError: 1,
           message: 'Column already exist, please choose another name',
-        })
-      );
-      return;
+        });
+      }
+      const newColumn = { title, order, columnId: nanoid() };
+      board.set('columns', [...columns, newColumn]);
+    } else {
+      const updatedColumns = map(board.columns, (column) => {
+        if (column.columnId === columnId) {
+          return { ...column, title };
+        }
+        return column;
+      });
+      board.columns = updatedColumns;
     }
-    const newColumn = { title, order, columnId: nanoid() };
-    boardResponse.set('columns', [...columns, newColumn]);
 
-    boardResponse.save();
-    res.status(200).send(
-      new CustomResponse({
-        isSuccess: 1,
-        message: 'Column created successfully',
-      })
-    );
+    await board.save();
+    return new CustomResponse({
+      isSuccess: 1,
+      message: 'Column updated successfully',
+      payload: { boardId, columns: board.columns },
+    });
   } catch (err) {
     console.error(err);
     if (err instanceof CustomResponse) {
-      res.status(500).send(err);
-      return;
+      return err;
     }
-    res.status(500).send(
-      new CustomResponse({
-        isError: 1,
-        message: 'Something went wrong while creating column',
-        payload: err,
-      })
-    );
+    return new CustomResponse({
+      isError: 1,
+      message: 'Create column errror',
+      payload: err,
+    });
   }
 };
 
