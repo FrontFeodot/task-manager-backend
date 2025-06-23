@@ -1,13 +1,15 @@
 import { Server as IOServer, Socket } from 'socket.io';
 
-import { manageMembers, updateBoardData } from '../../../controllers/board/boardController';
+import {
+  manageMembers,
+  updateBoardData,
+} from '../../../controllers/board/boardController';
 import { IBoard } from '../../interfaces/models/IBoardSchema';
 import CustomResponse from '../../utils/error';
 import { manageColumn } from '../../../controllers/board/columnController';
 import { IManageMembers } from '../../interfaces/controllers/IBoardControllers';
 import { IManageColumn } from '../../interfaces/controllers/IColumnControllers';
-
-type IAckCallback = (response: CustomResponse) => void;
+import { IAckCallback } from '../../interfaces/ISocket';
 
 const boardSocketHandlers = (socket: Socket, io: IOServer) => {
   socket.on('joinBoard', (boardId: string, callback: IAckCallback) => {
@@ -20,10 +22,10 @@ const boardSocketHandlers = (socket: Socket, io: IOServer) => {
       );
     }
     if (socket.data.currentRoom) {
-      socket.leave(socket.data.currentRoom)
+      socket.leave(socket.data.currentRoom);
     }
     socket.join(boardId);
-    socket.data.currentRoom = boardId
+    socket.data.currentRoom = boardId;
     console.log(`${socket.id} joined board`, boardId);
   });
 
@@ -33,38 +35,30 @@ const boardSocketHandlers = (socket: Socket, io: IOServer) => {
       const response = await updateBoardData(boardData);
 
       callback(response);
-        console.log('updateBoardData event response => ', response)
+      console.log('updateBoardData event response => ', response);
       if (response.isError) return;
 
       io.to(boardData.boardId!).emit('boardDataUpdated', boardData);
     }
   );
 
-  socket.on(
-    'manageColumn',
-    async (columnData: IManageColumn, callback) => {
-        const response = await manageColumn(columnData);
-        callback(response);
-        console.log('manageColumn event response => ', response)
-      if (response.isError) return;
+  socket.on('manageColumn', async (columnData: IManageColumn, callback) => {
+    const response = await manageColumn(columnData);
+    callback(response);
+    // console.log('manageColumn event response => ', response);
+    if (response.isError) return;
 
-      io.to(columnData.boardId!).emit('boardDataUpdated', response.payload);
-    }
-  )
+    io.to(columnData.boardId!).emit('boardDataUpdated', response.payload);
+  });
 
-  socket.on(
-    'manageMembers',
-    async (membersData: IManageMembers, callback) => {
-        const response = await manageMembers(membersData, socket.data.userId);
-        callback(response);
-        console.log('manageMembers event response => ', response)
-      if (response.isError) return;
+  socket.on('manageMembers', async (membersData: IManageMembers, callback) => {
+    const response = await manageMembers(membersData, socket.data.userId);
+    callback(response);
+    console.log('manageMembers event response => ', response);
+    if (response.isError) return;
 
-      io.to(membersData.boardId!).emit('boardDataUpdated', response.payload);
-    }
-  )
-
-
+    io.to(membersData.boardId!).emit('boardDataUpdated', response.payload);
+  });
 };
 
 export default boardSocketHandlers;

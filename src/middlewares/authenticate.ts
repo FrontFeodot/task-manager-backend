@@ -17,7 +17,7 @@ export const authenticate = (
   }
 
   try {
-    const userId = verifyJwt(token)
+    const userId = verifyJwt(token);
     req.body.userId = userId;
     next();
   } catch (error) {

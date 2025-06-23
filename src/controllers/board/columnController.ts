@@ -1,17 +1,15 @@
-import { Request, Response } from 'express';
 import CustomResponse from '../../common/utils/error';
-import { Board } from '../../models/board/board';
-import {
-  filter,
-  findIndex,
-  map,
-  some,
-  sortBy,
-} from 'lodash';
+import { filter, map, omit, some } from 'lodash';
 import { nanoid } from 'nanoid';
 import { getBoardHelper } from '../../common/utils/boardHelper';
 import { Task } from '../../models/board/task';
 import { IManageColumn } from '../../common/interfaces/controllers/IColumnControllers';
+import { IBoard, IColumn } from '../../common/interfaces/models/IBoardSchema';
+import { Document } from 'mongoose';
+import { updateMultiplyTasks } from './taskController';
+import { getIO } from '../../common/socket';
+
+type BoardDoc = Document<unknown, any, any> & IBoard;
 
 export const manageColumn = async ({
   title,
@@ -19,6 +17,7 @@ export const manageColumn = async ({
   order,
   columnId,
   isDelete,
+  tasksPath,
 }: IManageColumn): Promise<CustomResponse> => {
   try {
     if (!boardId || (!isDelete && !title)) {
@@ -32,32 +31,12 @@ export const manageColumn = async ({
     }
 
     const { columns } = board;
-    const isColumnCreate = !columnId;
-
+    const isColumnCreate = !columnId && order;
+    let updatedBoard;
     if (isDelete) {
-      if (!columnId) {
-        throw new CustomResponse({
-          isError: 1,
-          message: 'Missing columnId',
-        });
-      }
-
-      const updatedColumns = filter(
-        columns,
-        (column) => column.columnId !== columnId
-      );
-      board.columns = updatedColumns;
-    }
-    else if (isColumnCreate) {
-      const isAlreadyExist = some(columns, (column) => column.title === title);
-      if (isAlreadyExist) {
-        throw new CustomResponse({
-          isError: 1,
-          message: 'Column already exist, please choose another name',
-        });
-      }
-      const newColumn = { title, order, columnId: nanoid() };
-      board.set('columns', [...columns, newColumn]);
+      updatedBoard = await columnDelete(board, columns, columnId, tasksPath);
+    } else if (isColumnCreate) {
+      updatedBoard = columnCreate(board, columns, title, order);
     } else {
       const updatedColumns = map(board.columns, (column) => {
         if (column.columnId === columnId) {
@@ -66,9 +45,9 @@ export const manageColumn = async ({
         return column;
       });
       board.columns = updatedColumns;
+      updatedBoard = board;
     }
-
-    await board.save();
+    await updatedBoard.save();
     return new CustomResponse({
       isSuccess: 1,
       message: 'Column updated successfully',
@@ -87,122 +66,86 @@ export const manageColumn = async ({
   }
 };
 
-export const updateColumn = async (req: Request, res: Response) => {
-  const { boardId, columnId, title } = req.body;
-  try {
-    const board = await getBoardHelper(boardId);
-
-    if (board instanceof CustomResponse) {
-      throw board;
-    }
-
-    const updatedColumns = map(board.columns, (column) => {
-      if (column.columnId === columnId) {
-        return { ...column, title };
-      }
-      return column;
+const columnCreate = (
+  board: BoardDoc,
+  columns: IColumn[],
+  title: string,
+  order: number
+) => {
+  const isAlreadyExist = some(columns, (column) => column.title === title);
+  if (isAlreadyExist) {
+    throw new CustomResponse({
+      isError: 1,
+      message: 'Column already exist, please choose another name',
     });
-    board.columns = updatedColumns;
-    board.save();
-
-    res.status(200).send(
-      new CustomResponse({
-        isSuccess: 1,
-        message: 'Column updated successfuly',
-      })
-    );
-  } catch (err) {
-    console.error('Column update error', err);
-    if (err instanceof CustomResponse) {
-      res.status(500).send(err);
-      return;
-    }
-    res
-      .status(500)
-      .send(new CustomResponse({ isError: 1, message: 'Column update error' }));
   }
+  const newColumn = { title, order, columnId: nanoid() };
+  board.set('columns', [...columns, newColumn]);
+  return board;
 };
 
-export const deleteColumn = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const { userId, boardId, columnId, tasksPath } = req.body;
-
-  if (!req.body) {
-    res
-      .status(500)
-      .send(new CustomResponse({ isError: 1, message: 'Missing data' }));
+const columnDelete = async (
+  board: BoardDoc,
+  columns: IColumn[],
+  columnId?: string,
+  tasksPath?: string
+) => {
+  if (!columnId) {
+    throw new CustomResponse({
+      isError: 1,
+      message: 'Missing columnId',
+    });
   }
-  try {
-    const board = await getBoardHelper(boardId);
 
-    if (board instanceof CustomResponse) {
-      throw board;
-    }
-    const removedColumn = findIndex(
-      board.columns,
-      (column) => column.columnId === columnId
-    );
-    board.columns.splice(removedColumn, 1);
-    const sortedColumns = sortBy(board.columns, ['order']);
+  const { boardId } = board;
 
-    const updatedColumns = map(sortedColumns, (column, index) => ({
-      ...column,
-      order: index + 1,
-    }));
+  const updatedColumns = filter(
+    columns,
+    (column) => column.columnId !== columnId
+  );
 
-    board.columns = updatedColumns;
+  if (tasksPath) {
+    const lastTaskOrderInColumn = await Task.findOne({
+      boardId,
+      columnId: tasksPath,
+    })
+      .sort({ order: -1 })
+      .exec();
+    const tasksToUpdate = await Task.find({ columnId, boardId });
 
-    if (tasksPath === 'delete') {
-      await Task.deleteMany({ userId, columnId, boardId });
-    } else {
-      const lastTaskOrderInColumn = await Task.findOne({
-        userId,
-        boardId,
-        columnId: tasksPath,
-      })
-        .sort({ order: -1 })
-        .exec();
-      const tasksToUpdate = await Task.find({ userId, columnId, boardId });
-
-      const updates = map(tasksToUpdate, (item, index) => {
-        let order = index + 1;
-        if (lastTaskOrderInColumn?.order) {
-          order = lastTaskOrderInColumn.order + index + 1;
-        }
-        return {
-          updateOne: {
-            filter: { taskId: item.taskId, boardId: item.boardId },
-            update: { $set: { order, columnId: tasksPath } },
-          },
-        };
-      });
-      const response = await Task.bulkWrite(updates);
-
-      if (!response) {
-        throw new CustomResponse({ isError: 1, message: 'Task update error' });
+    const updates = map(tasksToUpdate, (item, index) => {
+      let order = index + 1;
+      if (lastTaskOrderInColumn?.order) {
+        order = lastTaskOrderInColumn.order + index + 1;
       }
-    }
+      return {
+        updateOne: {
+          filter: { taskId: item.taskId, boardId: item.boardId },
+          update: { $set: { order, columnId: tasksPath } },
+        },
+      };
+    });
+    const response = await Task.bulkWrite(updates);
 
-    await board.save();
-    res.status(200).send(
-      new CustomResponse({
-        isSuccess: 1,
-        message: 'Column deleted successfully',
-      })
-    );
-  } catch (err) {
-    if (err instanceof CustomResponse) {
-      res.status(500).send(err);
-      return;
-    }
-    res.status(500).send(
-      new CustomResponse({
+    if (!response) {
+      throw new CustomResponse({
         isError: 1,
-        message: 'Something went wrong while deleting column',
-        payload: err,
-      })
-    );
+        message: 'Task update error',
+      });
+    }
+    const updatedTasks = await Task.find({ columnId: tasksPath, boardId });
+    const io = getIO();
+    io.to(boardId).emit('multiplyTasksUpdated', {
+      payload: {
+        updatedTasks: map(updatedTasks, (task) =>
+          omit(task, ['userId', '_id', '__v'])
+        ),
+        boardId: boardId,
+      },
+    });
+  } else {
+    await Task.deleteMany({ columnId, boardId });
   }
+  board.columns = updatedColumns;
+  return board;
 };

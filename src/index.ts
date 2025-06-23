@@ -8,7 +8,6 @@ import loginRoute from './routes/login';
 import boardRoute from './routes/board/board';
 import mongoConnect from './common/utils/database';
 import taskRouter from './routes/board/task';
-import columnRouter from './routes/board/column';
 import CustomResponse from './common/utils/error';
 import { initSocket } from './common/socket';
 
@@ -49,9 +48,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(express.json());
 
-
-
-
 app.get('/ping', pingPong);
 
 app.use('/auth', loginRoute);
@@ -59,7 +55,6 @@ app.use('/auth', loginRoute);
 app.use('/board', boardRoute);
 
 app.use('/task', taskRouter);
-app.use('/column', columnRouter);
 
 app.use((req, res) => {
   res.status(404), res.send('<h1>Page not found</h1>');
@@ -71,8 +66,8 @@ initSocket(server);
 
 mongoConnect(() => {
   server.listen(process.env.PORT || 4000, () =>
-  console.log(
-    `[${process.env.NODE_ENV}] Server running on port ${process.env.PORT}`
-  )
-);
+    console.log(
+      `[${process.env.NODE_ENV}] Server running on port ${process.env.PORT}`
+    )
+  );
 });

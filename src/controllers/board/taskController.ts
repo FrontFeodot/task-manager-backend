@@ -2,12 +2,52 @@ import { Request, Response } from 'express';
 import { Task } from '../../models/board/task';
 import CustomResponse from '../../common/utils/error';
 import { ObjectId } from 'mongoose';
-import { Board } from '../../models/board/board';
-import { assign } from 'lodash';
+import { ITask } from '../../common/interfaces/models/ITaskSchema';
+import {
+  taskDeletedEvent,
+  taskUpdatedEvent,
+} from '../../common/socket/handlers/tasksEvents';
+
+export const updateMultiplyTasks = async (tasksToUpdate: Partial<ITask>[]) => {
+  if (!tasksToUpdate) {
+    throw new CustomResponse({ isError: 1, message: 'missing data' });
+  }
+  const updates = tasksToUpdate.map((item) => ({
+    updateOne: {
+      filter: { taskId: item.taskId, boardId: item.boardId },
+      update: {
+        $set: {
+          ...item,
+        },
+      },
+    },
+  }));
+
+  try {
+    const response = await Task.bulkWrite(updates);
+
+    if (!response || response instanceof Error) {
+      throw new CustomResponse({ isError: 1, message: 'Saving error' });
+    }
+    return new CustomResponse({
+      isSuccess: 1,
+      message: 'Tasks updated successfully',
+      payload: tasksToUpdate,
+    });
+  } catch (err) {
+    console.error('updateMultiplyTasks', err);
+    if (err instanceof CustomResponse) return err;
+    return new CustomResponse({
+      isError: 1,
+      message: 'Updating tasks error',
+      payload: err,
+    });
+  }
+};
 
 export const createTask = async (req: Request, res: Response) => {
   try {
-    const lastTask = await Task.findOne({ userId: req.body.userId })
+    const lastTask = await Task.findOne({ boardId: req.body.boardId })
       .sort({ taskId: -1 })
       .select('taskId')
       .exec();
@@ -19,6 +59,7 @@ export const createTask = async (req: Request, res: Response) => {
     });
 
     await task.save();
+    taskUpdatedEvent(task, true);
     res
       .status(200)
       .send(
@@ -37,13 +78,14 @@ export const createTask = async (req: Request, res: Response) => {
 };
 
 export const updateTask = async (req: Request, res: Response) => {
-  const { boardId, taskId } = req.body;
+  const taskToUpdate = req.body;
+  const { boardId, taskId } = taskToUpdate;
   try {
-    const response = await Task.findOneAndUpdate(
+    const task = await Task.findOneAndUpdate(
       { taskId, boardId },
       {
-        ...req.body,
-        ...(req.body.type === 'story' && req.body.parentTask
+        ...taskToUpdate,
+        ...(taskToUpdate.type === 'story' && taskToUpdate.parentTask
           ? {
               parentTask: null,
             }
@@ -51,9 +93,11 @@ export const updateTask = async (req: Request, res: Response) => {
         updatedAt: Date.now(),
       }
     );
-    if (response instanceof Error) {
-      throw response;
+    if (!task || task instanceof Error) {
+      throw task;
     }
+    taskUpdatedEvent(taskToUpdate);
+
     res.status(200).send(
       new CustomResponse({
         isSuccess: 1,
@@ -76,9 +120,9 @@ export const getTasksForColumn = async (columnId: ObjectId) => {
 };
 
 export const deleteTask = async (req: Request, res: Response) => {
-  const { userId, boardId, taskId } = req.body;
+  const { boardId, taskId } = req.body;
   try {
-    const response = await Task.findOneAndDelete({ userId, taskId, boardId });
+    const response = await Task.findOneAndDelete({ taskId, boardId });
     if (!response || response instanceof Error) {
       throw response;
     }
@@ -88,6 +132,7 @@ export const deleteTask = async (req: Request, res: Response) => {
       .send(
         new CustomResponse({ isSuccess: 1, message: 'Task delete successful' })
       );
+    taskDeletedEvent(taskId, boardId);
   } catch (err) {
     console.error('Task delete error: ', err);
     res.status(500).send(
