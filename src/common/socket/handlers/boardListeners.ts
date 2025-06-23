@@ -35,29 +35,26 @@ const boardSocketHandlers = (socket: Socket, io: IOServer) => {
       const response = await updateBoardData(boardData);
 
       callback(response);
-      console.log('updateBoardData event response => ', response);
       if (response.isError) return;
 
-      io.to(boardData.boardId!).emit('boardDataUpdated', boardData);
+      socket.broadcast.to(boardData.boardId!).emit('boardDataUpdated', boardData);
     }
   );
 
   socket.on('manageColumn', async (columnData: IManageColumn, callback) => {
     const response = await manageColumn(columnData);
     callback(response);
-    // console.log('manageColumn event response => ', response);
     if (response.isError) return;
 
-    io.to(columnData.boardId!).emit('boardDataUpdated', response.payload);
+    socket.broadcast.to(columnData.boardId!).emit('boardDataUpdated', response.payload);
   });
 
   socket.on('manageMembers', async (membersData: IManageMembers, callback) => {
     const response = await manageMembers(membersData, socket.data.userId);
     callback(response);
-    console.log('manageMembers event response => ', response);
     if (response.isError) return;
 
-    io.to(membersData.boardId!).emit('boardDataUpdated', response.payload);
+    socket.broadcast.to(membersData.boardId!).emit('boardDataUpdated', response.payload);
   });
 };
 
