@@ -7,12 +7,7 @@ import unusedImports from 'eslint-plugin-unused-imports';
 
 export default [
   {
-    ignores: [
-      'node_modules/**',
-      'dist/**',
-      'build/**',
-      'nodemon.json',
-    ],
+    ignores: ['node_modules/**', 'dist/**', 'build/**', 'nodemon.json'],
   },
   {
     files: ['**/*.ts'],

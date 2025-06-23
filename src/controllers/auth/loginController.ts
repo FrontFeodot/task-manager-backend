@@ -7,7 +7,6 @@ import { User } from '@models/user';
 import { generateToken } from '@common/utils/authHelper';
 import CustomResponse from '@common/utils/error';
 
-
 require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET || '';

@@ -2,8 +2,11 @@ import express from 'express';
 
 import { authenticate } from '@middlewares/authenticate';
 
-import { createTask, deleteTask, updateTask } from '@controllers/board/taskController';
-
+import {
+  createTask,
+  deleteTask,
+  updateTask,
+} from '@controllers/board/taskController';
 
 const router = express.Router();
 

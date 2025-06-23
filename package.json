@@ -7,7 +7,7 @@
     "build": "tsc && node scripts/fix-imports.js",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
-  "production": "cross-env NODE_ENV=production node dist/index.js",
+    "production": "cross-env NODE_ENV=production node dist/index.js",
     "prettier": "prettier --write ."
   },
   "author": "Bohdan Lopatnychenko",

@@ -2,7 +2,11 @@ import express from 'express';
 
 import { authenticate } from '@middlewares/authenticate';
 
-import { createBoard, deleteBoard, getBoardList } from '@controllers/board/boardController';
+import {
+  createBoard,
+  deleteBoard,
+  getBoardList,
+} from '@controllers/board/boardController';
 
 const router = express.Router();
 

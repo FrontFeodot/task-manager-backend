@@ -5,7 +5,6 @@ import CustomResponse from '@common/utils/error';
 
 import { getIO } from '..';
 
-
 export const taskUpdatedEvent = (task: ITask, isCreate?: boolean) => {
   const io = getIO();
 

@@ -12,17 +12,9 @@ export const initSocket = (server: HttpServer) => {
     cors: { origin: '*' },
     pingInterval: 10000,
     pingTimeout: 5000,
-    connectionStateRecovery: {},
-  });
-
-  io.on('connection', (socket: Socket) => {
-    console.log('New WS connection:', socket.id);
-    boardSocketHandlers(socket, io);
-    tasksSocketHandlers(socket, io);
-
-    socket.on('disconnect', () => {
-      console.log('WS disconnected:', socket.id);
-    });
+    connectionStateRecovery: {
+      maxDisconnectionDuration: 30000,
+    },
   });
 
   io.use((socket, next) => {
@@ -34,6 +26,20 @@ export const initSocket = (server: HttpServer) => {
     } catch (err) {
       next(new Error('Unauthorized'));
     }
+  });
+
+  io.on('connection', (socket: Socket) => {
+    console.log('New WS connection:', socket.id);
+    boardSocketHandlers(socket, io);
+    tasksSocketHandlers(socket, io);
+
+    socket.on('disconnect', (reason) => {
+      console.log(`WS disconnected (${reason}):`, socket.id);
+    });
+
+    socket.on('error', (err) => {
+      console.error('Socket error:', err);
+    });
   });
 
   return io;

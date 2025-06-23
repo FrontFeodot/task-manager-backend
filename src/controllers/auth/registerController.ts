@@ -9,7 +9,6 @@ import { initDefaultBoard } from '@controllers/board/boardController';
 import { generateToken } from '@common/utils/authHelper';
 import CustomResponse from '@common/utils/error';
 
-
 export const postRegister = async (
   req: Request,
   res: Response

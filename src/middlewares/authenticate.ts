@@ -1,4 +1,4 @@
-import { NextFunction,Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 import { verifyJwt } from '@common/utils/authHelper';
 import CustomResponse from '@common/utils/error';

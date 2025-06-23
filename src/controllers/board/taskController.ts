@@ -4,7 +4,10 @@ import { ObjectId } from 'mongoose';
 import { Task } from '@models/board/task';
 
 import { ITask } from '@common/interfaces/models/ITaskSchema';
-import { taskDeletedEvent, taskUpdatedEvent } from '@common/socket/handlers/tasksEvents';
+import {
+  taskDeletedEvent,
+  taskUpdatedEvent,
+} from '@common/socket/handlers/tasksEvents';
 import CustomResponse from '@common/utils/error';
 
 export const updateMultiplyTasks = async (tasksToUpdate: Partial<ITask>[]) => {

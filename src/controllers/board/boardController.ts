@@ -1,20 +1,20 @@
-import { Request, Response } from "express";
-import assign from "lodash/assign";
-import filter from "lodash/filter";
-import includes from "lodash/includes";
-import map from "lodash/map";
-import omit from "lodash/omit";
-import reduce from "lodash/reduce";
-import { nanoid } from "nanoid";
+import { Request, Response } from 'express';
+import assign from 'lodash/assign';
+import filter from 'lodash/filter';
+import includes from 'lodash/includes';
+import map from 'lodash/map';
+import omit from 'lodash/omit';
+import reduce from 'lodash/reduce';
+import { nanoid } from 'nanoid';
 
-import { Board } from "@models/board/board";
-import { Task } from "@models/board/task";
-import { User } from "@models/user";
+import { Board } from '@models/board/board';
+import { Task } from '@models/board/task';
+import { User } from '@models/user';
 
-import { IManageMembers } from "@common/interfaces/controllers/IBoardControllers";
-import { IBoard } from "@common/interfaces/models/IBoardSchema";
-import { getTaskForBoard } from "@common/utils/boardHelper";
-import CustomResponse from "@common/utils/error";
+import { IManageMembers } from '@common/interfaces/controllers/IBoardControllers';
+import { IBoard } from '@common/interfaces/models/IBoardSchema';
+import { getTaskForBoard } from '@common/utils/boardHelper';
+import CustomResponse from '@common/utils/error';
 
 export const initDefaultBoard = async (userId: string, ownerEmail: string) => {
   const boardId = nanoid();

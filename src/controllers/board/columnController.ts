@@ -1,17 +1,17 @@
-import filter from "lodash/filter";
-import map from "lodash/map";
-import omit from "lodash/omit";
-import some from "lodash/some";
-import { Document } from "mongoose";
-import { nanoid } from "nanoid";
+import filter from 'lodash/filter';
+import map from 'lodash/map';
+import omit from 'lodash/omit';
+import some from 'lodash/some';
+import { Document } from 'mongoose';
+import { nanoid } from 'nanoid';
 
-import { Task } from "@models/board/task";
+import { Task } from '@models/board/task';
 
-import { IManageColumn } from "@common/interfaces/controllers/IColumnControllers";
-import { IBoard, IColumn } from "@common/interfaces/models/IBoardSchema";
-import { getIO } from "@common/socket";
-import { getBoardHelper } from "@common/utils/boardHelper";
-import CustomResponse from "@common/utils/error";
+import { IManageColumn } from '@common/interfaces/controllers/IColumnControllers';
+import { IBoard, IColumn } from '@common/interfaces/models/IBoardSchema';
+import { getIO } from '@common/socket';
+import { getBoardHelper } from '@common/utils/boardHelper';
+import CustomResponse from '@common/utils/error';
 
 type BoardDoc = Document<unknown, any, any> & IBoard;
 

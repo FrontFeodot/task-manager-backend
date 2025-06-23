@@ -1,6 +1,9 @@
 import { Server as IOServer, Socket } from 'socket.io';
 
-import { manageMembers, updateBoardData } from '@controllers/board/boardController';
+import {
+  manageMembers,
+  updateBoardData,
+} from '@controllers/board/boardController';
 import { manageColumn } from '@controllers/board/columnController';
 
 import { IManageMembers } from '@common/interfaces/controllers/IBoardControllers';
@@ -35,7 +38,9 @@ const boardSocketHandlers = (socket: Socket, io: IOServer) => {
       callback(response);
       if (response.isError) return;
 
-      socket.broadcast.to(boardData.boardId!).emit('boardDataUpdated', boardData);
+      socket.broadcast
+        .to(boardData.boardId!)
+        .emit('boardDataUpdated', boardData);
     }
   );
 
@@ -44,7 +49,9 @@ const boardSocketHandlers = (socket: Socket, io: IOServer) => {
     callback(response);
     if (response.isError) return;
 
-    socket.broadcast.to(columnData.boardId!).emit('boardDataUpdated', response.payload);
+    socket.broadcast
+      .to(columnData.boardId!)
+      .emit('boardDataUpdated', response.payload);
   });
 
   socket.on('manageMembers', async (membersData: IManageMembers, callback) => {
@@ -52,7 +59,9 @@ const boardSocketHandlers = (socket: Socket, io: IOServer) => {
     callback(response);
     if (response.isError) return;
 
-    socket.broadcast.to(membersData.boardId!).emit('boardDataUpdated', response.payload);
+    socket.broadcast
+      .to(membersData.boardId!)
+      .emit('boardDataUpdated', response.payload);
   });
 };
 
