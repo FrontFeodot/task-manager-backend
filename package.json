@@ -7,7 +7,6 @@
     "build": "tsc && node scripts/fix-imports.js",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
-  "postbuild": "node scripts/create-aliases.js",
   "production": "cross-env NODE_ENV=production node dist/index.js",
     "prettier": "prettier --write ."
   },
