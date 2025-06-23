@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import CustomResponse from '../common/utils/error';
-import { verifyJwt } from '../common/utils/authHelper';
+import { NextFunction,Request, Response } from 'express';
+
+import { verifyJwt } from '@common/utils/authHelper';
+import CustomResponse from '@common/utils/error';
 
 export const authenticate = (
   req: Request,

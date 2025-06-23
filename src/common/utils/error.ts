@@ -1,4 +1,4 @@
-import { ICustomResponsePayload } from '../interfaces/ICustomError';
+import { ICustomResponsePayload } from "@common/interfaces/ICustomError";
 
 class CustomResponse {
   isSuccess: number;

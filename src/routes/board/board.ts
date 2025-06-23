@@ -1,10 +1,8 @@
 import express from 'express';
-import {
-  deleteBoard,
-  getBoardList,
-} from '../../controllers/board/boardController';
-import { authenticate } from '../../middlewares/authenticate';
-import { createBoard } from '../../controllers/board/boardController';
+
+import { authenticate } from '@middlewares/authenticate';
+
+import { createBoard, deleteBoard, getBoardList } from '@controllers/board/boardController';
 
 const router = express.Router();
 

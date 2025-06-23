@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+
 import CustomResponse from './error';
 
 interface JwtPayload {

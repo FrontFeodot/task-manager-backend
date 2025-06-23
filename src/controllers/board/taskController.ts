@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
-import { Task } from '../../models/board/task';
-import CustomResponse from '../../common/utils/error';
 import { ObjectId } from 'mongoose';
-import { ITask } from '../../common/interfaces/models/ITaskSchema';
-import {
-  taskDeletedEvent,
-  taskUpdatedEvent,
-} from '../../common/socket/handlers/tasksEvents';
+
+import { Task } from '@models/board/task';
+
+import { ITask } from '@common/interfaces/models/ITaskSchema';
+import { taskDeletedEvent, taskUpdatedEvent } from '@common/socket/handlers/tasksEvents';
+import CustomResponse from '@common/utils/error';
 
 export const updateMultiplyTasks = async (tasksToUpdate: Partial<ITask>[]) => {
   if (!tasksToUpdate) {

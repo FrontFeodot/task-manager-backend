@@ -1,4 +1,5 @@
 import { Types } from 'mongoose';
+
 import { ITask } from './ITaskSchema';
 
 export interface IBoard extends Document {

@@ -1,7 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
-import { IBoard, IColumn } from '../../common/interfaces/models/IBoardSchema';
-import { ITask } from '../../common/interfaces/models/ITaskSchema';
-import { TaskSchema } from './task';
+
+import { IBoard, IColumn } from '@common/interfaces/models/IBoardSchema';
 
 const ColumnSchema = new Schema<IColumn>({
   title: { type: String, required: true },

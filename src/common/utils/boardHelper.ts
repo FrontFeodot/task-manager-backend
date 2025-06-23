@@ -1,9 +1,13 @@
-import { Document, Types } from 'mongoose';
-import { Board } from '../../models/board/board';
-import { IBoard } from '../interfaces/models/IBoardSchema';
+import omit from 'lodash/omit';
+import reduce from 'lodash/reduce';
+import { Document } from 'mongoose';
+
+import { Board } from '@models/board/board';
+
+import { IBoard } from '@common/interfaces/models/IBoardSchema';
+import { ITask } from '@common/interfaces/models/ITaskSchema';
+
 import CustomResponse from './error';
-import { ITask } from '../interfaces/models/ITaskSchema';
-import { omit, reduce } from 'lodash';
 
 export const getBoardHelper = async (
   boardId: string

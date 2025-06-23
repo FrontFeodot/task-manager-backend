@@ -1,7 +1,10 @@
-import { omit } from 'lodash';
+import omit from 'lodash/omit';
+
+import { ITask } from '@common/interfaces/models/ITaskSchema';
+import CustomResponse from '@common/utils/error';
+
 import { getIO } from '..';
-import { ITask } from '../../interfaces/models/ITaskSchema';
-import CustomResponse from '../../utils/error';
+
 
 export const taskUpdatedEvent = (task: ITask, isCreate?: boolean) => {
   const io = getIO();

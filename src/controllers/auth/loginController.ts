@@ -1,10 +1,12 @@
-import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-
+import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import CustomResponse from '../../common/utils/error';
-import { generateToken } from '../../common/utils/authHelper';
-import { User } from '../../models/user';
+
+import { User } from '@models/user';
+
+import { generateToken } from '@common/utils/authHelper';
+import CustomResponse from '@common/utils/error';
+
 
 require('dotenv').config();
 

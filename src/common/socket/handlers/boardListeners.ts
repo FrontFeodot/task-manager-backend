@@ -1,15 +1,13 @@
 import { Server as IOServer, Socket } from 'socket.io';
 
-import {
-  manageMembers,
-  updateBoardData,
-} from '../../../controllers/board/boardController';
-import { IBoard } from '../../interfaces/models/IBoardSchema';
-import CustomResponse from '../../utils/error';
-import { manageColumn } from '../../../controllers/board/columnController';
-import { IManageMembers } from '../../interfaces/controllers/IBoardControllers';
-import { IManageColumn } from '../../interfaces/controllers/IColumnControllers';
-import { IAckCallback } from '../../interfaces/ISocket';
+import { manageMembers, updateBoardData } from '@controllers/board/boardController';
+import { manageColumn } from '@controllers/board/columnController';
+
+import { IManageMembers } from '@common/interfaces/controllers/IBoardControllers';
+import { IManageColumn } from '@common/interfaces/controllers/IColumnControllers';
+import { IAckCallback } from '@common/interfaces/ISocket';
+import { IBoard } from '@common/interfaces/models/IBoardSchema';
+import CustomResponse from '@common/utils/error';
 
 const boardSocketHandlers = (socket: Socket, io: IOServer) => {
   socket.on('joinBoard', (boardId: string, callback: IAckCallback) => {

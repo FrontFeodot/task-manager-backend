@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-import { IUser } from '../common/interfaces/models/IUserSchema';
+
+import { IUser } from '@common/interfaces/models/IUserSchema';
 
 const Schema = mongoose.Schema;
 

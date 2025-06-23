@@ -1,15 +1,17 @@
-import path from 'path';
-import http from 'http';
-
-import express, { Request, Response } from 'express';
+import 'module-alias/register';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import loginRoute from './routes/login';
-import boardRoute from './routes/board/board';
-import mongoConnect from './common/utils/database';
-import taskRouter from './routes/board/task';
-import CustomResponse from './common/utils/error';
-import { initSocket } from './common/socket';
+import express, { Request, Response } from 'express';
+import http from 'http';
+import path from 'path';
+
+import boardRoute from '@routes/board/board';
+import taskRouter from '@routes/board/task';
+import loginRoute from '@routes/login';
+
+import { initSocket } from '@common/socket';
+import mongoConnect from '@common/utils/database';
+import CustomResponse from '@common/utils/error';
 
 const app: express.Application = express();
 

@@ -1,5 +1,6 @@
 import { Server as HttpServer } from 'http';
 import { Server as IOServer, Socket } from 'socket.io';
+
 import { verifyJwt } from '../utils/authHelper';
 import boardSocketHandlers from './handlers/boardListeners';
 import tasksSocketHandlers from './handlers/tasksListeners';

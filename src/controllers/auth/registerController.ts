@@ -1,11 +1,14 @@
+import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import { nanoid } from 'nanoid';
-import bcrypt from 'bcryptjs';
 
-import CustomResponse from '../../common/utils/error';
-import { generateToken } from '../../common/utils/authHelper';
-import { initDefaultBoard } from '../board/boardController';
-import { User } from '../../models/user';
+import { User } from '@models/user';
+
+import { initDefaultBoard } from '@controllers/board/boardController';
+
+import { generateToken } from '@common/utils/authHelper';
+import CustomResponse from '@common/utils/error';
+
 
 export const postRegister = async (
   req: Request,

@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=development nodemon",
+    "start": "cross-env NODE_ENV=development nodemon --exec \"ts-node -r tsconfig-paths/register -r module-alias/register\" ./src/index.ts",
     "build": "tsc",
-    "production": "cross-env NODE_ENV=production node dist/index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "production": "cross-env NODE_ENV=production node -r module-alias/register dist/index.js",
     "prettier": "prettier --write ."
   },
   "author": "Bohdan Lopatnychenko",
@@ -19,6 +21,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
+    "module-alias": "^2.2.3",
     "mongodb": "^6.12.0",
     "mongoose": "^8.9.3",
     "nanoid": "^3.3.8",
@@ -35,7 +38,22 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/lodash": "^4.17.14",
     "@types/node": "^22.10.5",
+    "@typescript-eslint/eslint-plugin": "^8.29.0",
+    "@typescript-eslint/parser": "^8.29.0",
     "cross-env": "^7.0.3",
-    "prettier": "^3.4.2"
+    "eslint": "^9.23.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "prettier": "^3.4.2",
+    "tsconfig-paths": "^4.2.0"
+  },
+  "_moduleAliases": {
+    "@controllers": "src/controllers",
+    "@middlewares": "src/middlewares",
+    "@common": "src/common",
+    "@models": "src/models",
+    "@routes": "src/routes"
   }
 }
