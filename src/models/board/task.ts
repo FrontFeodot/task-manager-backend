@@ -23,4 +23,6 @@ export const TaskSchema = new Schema<ITask>({
   order: { type: Number, required: true },
 });
 
+TaskSchema.index({ boardId: 1 }, { unique: true });
+
 export const Task = mongoose.model<ITask>('Task', TaskSchema);

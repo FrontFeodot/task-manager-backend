@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { ObjectId } from 'mongoose';
 
+import { Counter } from '@models/board/counter';
 import { Task } from '@models/board/task';
 
 import { ITask } from '@common/interfaces/models/ITaskSchema';
@@ -10,13 +11,16 @@ import {
 } from '@common/socket/handlers/tasksEvents';
 import CustomResponse from '@common/utils/error';
 
-export const updateMultiplyTasks = async (tasksToUpdate: Partial<ITask>[]) => {
+export const updateMultiplyTasks = async (
+  tasksToUpdate: Partial<ITask>[],
+  boardId: string
+) => {
   if (!tasksToUpdate) {
     throw new CustomResponse({ isError: 1, message: 'missing data' });
   }
   const updates = tasksToUpdate.map((item) => ({
     updateOne: {
-      filter: { taskId: item.taskId, boardId: item.boardId },
+      filter: { taskId: item.taskId, boardId: boardId },
       update: {
         $set: {
           ...item,
@@ -27,7 +31,6 @@ export const updateMultiplyTasks = async (tasksToUpdate: Partial<ITask>[]) => {
 
   try {
     const response = await Task.bulkWrite(updates);
-
     if (!response || response instanceof Error) {
       throw new CustomResponse({ isError: 1, message: 'Saving error' });
     }
@@ -49,12 +52,16 @@ export const updateMultiplyTasks = async (tasksToUpdate: Partial<ITask>[]) => {
 
 export const createTask = async (req: Request, res: Response) => {
   try {
-    const lastTask = await Task.findOne({ boardId: req.body.boardId })
-      .sort({ taskId: -1 })
-      .select('taskId')
-      .exec();
+    const counterName = `task_${req.body.boardId}`;
 
-    const newTaskId = lastTask ? lastTask.taskId + 1 : 1;
+    const counter = await Counter.findOneAndUpdate(
+      { name: counterName },
+      { $inc: { seq: 1 } },
+      { upsert: true, new: true }
+    );
+
+    const newTaskId = counter.seq;
+
     const task = new Task({
       ...req.body,
       taskId: newTaskId,

@@ -1,10 +1,7 @@
 import { Request, Response } from 'express';
-import assign from 'lodash/assign';
 import filter from 'lodash/filter';
 import includes from 'lodash/includes';
 import map from 'lodash/map';
-import omit from 'lodash/omit';
-import reduce from 'lodash/reduce';
 import { nanoid } from 'nanoid';
 
 import { Board } from '@models/board/board';
@@ -13,7 +10,7 @@ import { User } from '@models/user';
 
 import { IManageMembers } from '@common/interfaces/controllers/IBoardControllers';
 import { IBoard } from '@common/interfaces/models/IBoardSchema';
-import { getTaskForBoard } from '@common/utils/boardHelper';
+import { getBoardListPipeline } from '@common/utils/boardListAggregator';
 import CustomResponse from '@common/utils/error';
 
 export const initDefaultBoard = async (userId: string, ownerEmail: string) => {
@@ -40,49 +37,20 @@ export const initDefaultBoard = async (userId: string, ownerEmail: string) => {
   }
 };
 
-export const getBoardList = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getBoardList = async (req: Request, res: Response) => {
   try {
     const { userId } = req.body;
-
-    if (!userId) {
-      throw new CustomResponse({ isError: 1, message: 'UserId is missing' });
-    }
     const user = await User.findOne({ userId });
+    if (!user) throw new Error('User not found');
 
-    if (!user) {
-      throw new CustomResponse({ isError: 1, message: 'User not found' });
-    }
+    const pipeline = getBoardListPipeline({ userId, userEmail: user.email });
 
-    const boards = await Board.find({
-      $or: [{ userId }, { members: user.email }],
-    }).lean();
-
-    const boardsIds = boards.map((board) => board.boardId);
-
-    const tasks = await Task.find({
-      boardId: boardsIds,
-    }).lean();
-
-    const boardList = reduce(
-      boards,
-      (result, boardItem) => {
-        return assign(result, {
-          [boardItem.boardId]: {
-            ...omit(boardItem, ['userId', '_id', '__v']),
-            tasks: getTaskForBoard(tasks, boardItem.boardId),
-          },
-        });
-      },
-      {}
-    );
+    const [boardList] = await Board.aggregate(pipeline);
 
     res.status(200).send(
       new CustomResponse({
         isSuccess: 1,
-        message: 'Success',
+        message: 'Board list fetched successfuly',
         payload: boardList,
       })
     );
@@ -91,8 +59,45 @@ export const getBoardList = async (
     res
       .status(500)
       .send(
-        new CustomResponse({ isError: 1, message: 'Error fetching board' })
+        new CustomResponse({ isError: 1, message: 'Error fetching boards' })
       );
+  }
+};
+
+export const getSingleBoard = async (req: Request, res: Response) => {
+  const boardId = req.query.boardId as string;
+  try {
+    if (!boardId) {
+      throw new CustomResponse({ isError: 1, message: 'Missing board id' });
+    }
+    const pipeline = getBoardListPipeline({ boardId });
+
+    const [board] = await Board.aggregate(pipeline);
+
+    if (!board) {
+      throw new CustomResponse({ isError: 1, message: 'Board not found' });
+    }
+
+    res.status(200).send(
+      new CustomResponse({
+        isSuccess: 1,
+        message: 'Board fetched successfuly',
+        payload: board[boardId],
+      })
+    );
+  } catch (err) {
+    console.error(err);
+    if (err instanceof CustomResponse) {
+      res.status(500).send(err);
+      return;
+    }
+    res.status(500).send(
+      new CustomResponse({
+        isError: 1,
+        message: 'Error fetching board',
+        payload: err,
+      })
+    );
   }
 };
 

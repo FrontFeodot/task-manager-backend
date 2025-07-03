@@ -23,15 +23,15 @@ export const initSocket = (server: HttpServer) => {
       const payload = verifyJwt(token);
       socket.data.userId = payload;
       next();
-    } catch (err) {
+    } catch {
       next(new Error('Unauthorized'));
     }
   });
 
   io.on('connection', (socket: Socket) => {
     console.log('New WS connection:', socket.id);
-    boardSocketHandlers(socket, io);
-    tasksSocketHandlers(socket, io);
+    boardSocketHandlers(socket);
+    tasksSocketHandlers(socket);
 
     socket.on('disconnect', (reason) => {
       console.log(`WS disconnected (${reason}):`, socket.id);

@@ -5,7 +5,7 @@ import { ITask } from './ITaskSchema';
 export interface IBoard extends Document {
   title: string;
   boardId: string;
-  columns: IColumn[];
+  columns: Map<string, IColumn>;
   doneColumn: string | null;
   tasks: ITask[];
   userId: string;

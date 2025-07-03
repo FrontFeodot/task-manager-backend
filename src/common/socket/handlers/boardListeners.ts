@@ -12,7 +12,7 @@ import { IAckCallback } from '@common/interfaces/ISocket';
 import { IBoard } from '@common/interfaces/models/IBoardSchema';
 import CustomResponse from '@common/utils/error';
 
-const boardSocketHandlers = (socket: Socket, io: IOServer) => {
+const boardSocketHandlers = (socket: Socket) => {
   socket.on('joinBoard', (boardId: string, callback: IAckCallback) => {
     if (socket.rooms.has(boardId)) {
       return callback(
@@ -27,7 +27,6 @@ const boardSocketHandlers = (socket: Socket, io: IOServer) => {
     }
     socket.join(boardId);
     socket.data.currentRoom = boardId;
-    console.log(`${socket.id} joined board`, boardId);
   });
 
   socket.on(

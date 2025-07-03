@@ -1,4 +1,3 @@
-import filter from 'lodash/filter';
 import map from 'lodash/map';
 import omit from 'lodash/omit';
 import some from 'lodash/some';
@@ -13,6 +12,7 @@ import { getIO } from '@common/socket';
 import { getBoardHelper } from '@common/utils/boardHelper';
 import CustomResponse from '@common/utils/error';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type BoardDoc = Document<unknown, any, any> & IBoard;
 
 export const manageColumn = async ({
@@ -27,28 +27,24 @@ export const manageColumn = async ({
     if (!boardId || (!isDelete && !title)) {
       throw new CustomResponse({ isError: 1, message: 'Missing data' });
     }
-
     const board = await getBoardHelper(boardId);
 
     if (board instanceof CustomResponse) {
       throw board;
     }
 
-    const { columns } = board;
     const isColumnCreate = !columnId && order;
     let updatedBoard;
     if (isDelete) {
-      updatedBoard = await columnDelete(board, columns, columnId, tasksPath);
+      updatedBoard = await columnDelete(board, columnId, tasksPath);
     } else if (isColumnCreate) {
-      updatedBoard = columnCreate(board, columns, title, order);
+      updatedBoard = columnCreate(board, title, order);
     } else {
-      const updatedColumns = map(board.columns, (column) => {
-        if (column.columnId === columnId) {
-          return { ...column, title };
-        }
-        return column;
-      });
-      board.columns = updatedColumns;
+      if (!columnId) {
+        throw new CustomResponse({ isError: 1, message: 'Missing columnId' });
+      }
+      const col = board.columns.get(columnId);
+      col!.title = title;
       updatedBoard = board;
     }
     await updatedBoard.save();
@@ -70,13 +66,10 @@ export const manageColumn = async ({
   }
 };
 
-const columnCreate = (
-  board: BoardDoc,
-  columns: IColumn[],
-  title: string,
-  order: number
-) => {
-  const isAlreadyExist = some(columns, (column) => column.title === title);
+const columnCreate = (board: BoardDoc, title: string, order: number) => {
+  const { columns } = board;
+  const columnsArray = Array.from(columns.values());
+  const isAlreadyExist = some(columnsArray, (column) => column.title === title);
   if (isAlreadyExist) {
     throw new CustomResponse({
       isError: 1,
@@ -84,13 +77,12 @@ const columnCreate = (
     });
   }
   const newColumn = { title, order, columnId: nanoid() };
-  board.set('columns', [...columns, newColumn]);
+  board.columns.set(newColumn.columnId, newColumn);
   return board;
 };
 
 const columnDelete = async (
   board: BoardDoc,
-  columns: IColumn[],
   columnId?: string,
   tasksPath?: string
 ) => {
@@ -102,13 +94,7 @@ const columnDelete = async (
   }
 
   const { boardId } = board;
-
-  const updatedColumns = filter(
-    columns,
-    (column) => column.columnId !== columnId
-  );
-
-  if (tasksPath) {
+  if (tasksPath && tasksPath !== 'delete') {
     const lastTaskOrderInColumn = await Task.findOne({
       boardId,
       columnId: tasksPath,
@@ -147,9 +133,18 @@ const columnDelete = async (
         boardId: boardId,
       },
     });
-  } else {
+  }
+  if (tasksPath === 'delete') {
     await Task.deleteMany({ columnId, boardId });
   }
-  board.columns = updatedColumns;
+
+  const colsMap = board.columns as Map<string, IColumn>;
+  if (!colsMap.has(columnId)) {
+    throw new CustomResponse({ isError: 1, message: 'Column not found' });
+  }
+
+  colsMap.delete(columnId);
+  board.markModified('columns');
+
   return board;
 };
