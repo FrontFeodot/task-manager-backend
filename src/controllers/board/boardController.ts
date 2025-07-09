@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import filter from 'lodash/filter';
+import forEach from 'lodash/forEach';
 import includes from 'lodash/includes';
-import map from 'lodash/map';
 import { nanoid } from 'nanoid';
 
 import { Board } from '@models/board/board';
@@ -9,19 +9,22 @@ import { Task } from '@models/board/task';
 import { User } from '@models/user';
 
 import { IManageMembers } from '@common/interfaces/controllers/IBoardControllers';
-import { IBoard } from '@common/interfaces/models/IBoardSchema';
+import { IBoard, IColumn } from '@common/interfaces/models/IBoardSchema';
 import { getBoardListPipeline } from '@common/utils/boardListAggregator';
 import CustomResponse from '@common/utils/error';
 
 export const initDefaultBoard = async (userId: string, ownerEmail: string) => {
   const boardId = nanoid();
   const initColumnTitles = ['day', 'week', 'month', 'quarter', 'year'];
-  const columns = map(initColumnTitles, (columnTitle, index) => {
-    return {
+  const columns = new Map<string, IColumn>();
+
+  forEach(initColumnTitles, (columnTitle, index) => {
+    const columnId = nanoid();
+    columns.set(columnId, {
       title: columnTitle,
       order: index + 1,
-      columnId: nanoid(),
-    };
+      columnId,
+    });
   });
   const defaultBoard = new Board({
     title: 'Weekly planer',

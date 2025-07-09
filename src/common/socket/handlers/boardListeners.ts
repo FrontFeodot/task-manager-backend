@@ -1,4 +1,4 @@
-import { Server as IOServer, Socket } from 'socket.io';
+import { Socket } from 'socket.io';
 
 import {
   manageMembers,
